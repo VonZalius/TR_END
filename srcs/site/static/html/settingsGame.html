@@ -21,43 +21,42 @@
 	</nav>
 
 	<!-- Modal for user login -->
-	<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title" id="loginModalLabel" data-translate="user_login">User Login</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
-				<div class="modal-body">
-					<div class="form-group mb-3">
-						<label for="loginEmail" data-translate="email_label">Email</label>
-						<input type="email" id="loginEmail" class="form-control" placeholder="Enter your email" data-translate="email_placeholder" required>
-					</div>
-					<div class="form-group mb-3">
-						<label for="loginPassword" data-translate="password_label">Password</label>
-						<input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" data-translate="password_placeholder" required>
-					</div>
-					<input type="hidden" id="loginPlayerIndex"> <!-- Hidden field to store player index -->
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-translate="close_button">Close</button>
-					<button type="button" class="btn btn-primary" id="loginSubmit" data-translate="login_button">Login</button>
-				</div>
-			</div>
-		</div>
-	</div>
-	
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="loginModalLabel"data-translate="user_login">User Login</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group mb-3">
+                    <label for="loginEmail"data-translate="email_label">Email</label>
+                    <input type="email" id="loginEmail" class="form-control" placeholder="Enter your email" data-translate="email_placeholder" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="loginPassword"data-translate="password_label">Password</label>
+                    <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" data-translate="password_placeholder" required>
+                </div>
+                <input type="hidden" id="loginPlayerIndex"> <!-- Hidden field to store player index -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"data-translate="close_button">Close</button>
+                <button type="button" class="btn btn-primary" id="loginSubmit"data-translate="login_button">Login</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 	<div class="container mt-5">
 		<div class="row justify-content-center">
 			<div class="col-lg-8 col-md-10">
-				<h2 class="text-center mb-4" data-translate="customize_play">Customize & Play</h2>
+				<h2 class="text-center mb-4"data-translate="customize_play">Customize & Play</h2>
 				<div class="card p-4">
 					<div id="controls">
 
 						<div class="form-group mb-3 d-flex align-items-center">
-								<label for="mode" class="form-label text-nowrap mt-1 me-4" data-translate="game_mode">Game Mode :</label>
+								<label for="mode" class="form-label text-nowrap mt-1 me-4"data-translate="game_mode">Game Mode :</label>
 								<select id="mode" class="form-select flex-grow-1">
 									<option value="versus" data-translate="game_mode_versus">Versus</option>
     								<option value="tournament" data-translate="game_mode_tournament">Tournament</option>
@@ -65,6 +64,26 @@
     								<option value="brickBreaker" data-translate="game_mode_brick_breaker">Brick Breaker</option>
 								</select>
 						</div>
+<!-- Ajoutez un ID à la section complète pour la cibler -->
+<div id="matchmakingSection">
+    <div class="form-group mb-3 d-flex align-items-center justify-content-between">
+        <span id="userWinPercentageText" class="me-3">My winning percentage : %</span>
+        <button id="matchmakingButton" class="btn btn-outline-info" data-bs-toggle="collapse" data-bs-target="#matchmakingAccordion">
+            Show Matchmaking with Friends
+        </button>
+    </div>
+
+    <div id="matchmakingAccordion" class="accordion-collapse collapse">
+        <div class="accordion-body">
+            <ul id="friendMatchmakingList" class="list-group">
+                <!-- Amis triés par pourcentage de victoires global -->
+            </ul>
+        </div>
+    </div>
+</div>
+
+						
+
 
 						<div id="player-controls-wrapper" class="row"></div>
 
@@ -77,7 +96,7 @@
 						</div>
 
 						<div class="form-group mb-3">
-							<label for="maxScore" class="form-label" data-translate="max_score" >Max Score: <span id="maxScoreValue">10</span></label>
+							<label for="maxScore" class="form-label"data-translate="max_score">Max Score: <span id="maxScoreValue">10</span></label>
 							<input type="range" id="maxScore" class="form-range" min="1" max="100" value="10" step="1">
 						</div>
 
@@ -116,13 +135,6 @@
 							<input type="range" id="map" class="form-range" min="1" max="5" value="1" step="1">
 						</div>
 
-						<div class="mt-5">
-                            <div class="container w-75">
-                                <button id="findClosestMatchButton" class="btn btn-primary d-block mx-auto mt-4"data-translate="find_match">Friend with a similar winning percentage</button>
-                                <p id="result" class="text-center mt-3"></p>
-                            </div>
-                        </div>
-
 						<div class="d-flex justify-content-between mt-4">
 							<button id="defaultSetting" class="btn btn-secondary"data-translate="default_settings">Default Settings</button>
 							<button id="startGame" class="btn btn-primary"data-translate="start_game">Start Game</button>
@@ -139,5 +151,6 @@
 	<script type="module" src="../js/settingsGame.js"></script>
 	<script type="module" src="../js/games/registerGame.js"></script>
 	<script src="../js/games/verifUser.js"></script>
+	<script type="module" src="../js/games/matchmaking.js"></script>
 </body>
 </html>

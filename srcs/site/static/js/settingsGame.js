@@ -146,7 +146,6 @@ function addPlayerField(index, noControls = false) {
     `;
     playerContainer.appendChild(divPlayer);
 
-
     const mode = document.getElementById('mode').value;
 
     let upLabel = "Up Key";
@@ -205,7 +204,7 @@ function addPlayerField(index, noControls = false) {
         column.appendChild(playerContainer);
     }
 
-    document.getElementById(`player${index}Up`).addEventListener('keydown', function(event) {
+	document.getElementById(`player${index}Up`).addEventListener('keydown', function(event) {
         event.preventDefault();
         const key = event.key;
         let displayValue = key;
@@ -462,3 +461,12 @@ loginModal.addEventListener('shown.bs.modal', () => {
 });
 
 document.getElementById('defaultSetting').addEventListener('click', resetToDefault);
+
+document.addEventListener('DOMContentLoaded', () => {
+    const accessToken = localStorage.getItem('accessToken');
+    const matchmakingSection = document.getElementById('matchmakingSection');
+
+    if (!accessToken && matchmakingSection) {
+        matchmakingSection.style.display = 'none';
+    }
+});

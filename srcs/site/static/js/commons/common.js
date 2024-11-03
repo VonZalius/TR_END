@@ -31,6 +31,11 @@ function checkForMessage(containerId = 'messageContainer')
 
 // Fonction pour ajouter une plage de bas de page
 function addFooter() {
+    // Vérifier si la page contient l'attribut 'data-no-footer' pour ne pas ajouter le footer
+    if (document.body.hasAttribute('data-no-footer')) {
+        return;
+    }
+
     const footerContainer = document.createElement('div');
     footerContainer.style.position = 'fixed';
     footerContainer.style.bottom = '0';
@@ -63,6 +68,7 @@ function addFooter() {
     document.body.appendChild(spacer);
 }
 
+
 // Fonction pour rediriger vers un site aléatoire
 function redirectRandomSite() {
     const sites = [
@@ -76,9 +82,8 @@ function redirectRandomSite() {
 }
 
 function changeLanguage() {
-    const languageSelector = document.getElementById('languageSelector');
-    const selectedLanguage = languageSelector.value;
-    localStorage.setItem('selectedLanguage', selectedLanguage); // Sauvegarder la langue sélectionnée
+    // Récupérer la langue enregistrée, ou utiliser 'en' par défaut
+    const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en';
 
     document.querySelectorAll('[data-translate]').forEach(element => {
         const key = element.getAttribute('data-translate');
@@ -106,6 +111,7 @@ function changeLanguage() {
         }
     });
 }
+
 
 
 
@@ -156,7 +162,9 @@ const translations = {
         "must_have_name_and_keys": "must have a name and keys assigned!",
         "name_already_used": "The name is already used by another player. Please choose a different name.",
         "same_key_error": "cannot have the same key for both Up and Down.",
-        "key_already_assigned": "The key is already assigned to another player."
+        "key_already_assigned": "The key is already assigned to another player.",
+        "back_to_menu": "Back to Menu",
+        "go_to_settings": "Go to Settings"
     },
     fr: {
         "footer_names": "amonbaro | cmansey | mdanchev | abarras",
@@ -197,7 +205,9 @@ const translations = {
         "must_have_name_and_keys": "doit avoir un nom et des touches assignés!",
         "name_already_used": "Le nom est déjà utilisé par un autre joueur. Veuillez choisir un nom différent.",
         "same_key_error": "ne peut pas avoir la même touche pour Haut et Bas.",
-        "key_already_assigned": "La touche est déjà assignée à un autre joueur."
+        "key_already_assigned": "La touche est déjà assignée à un autre joueur.",
+        "back_to_menu": "Retour au menu",
+        "go_to_settings": "Aller aux paramètres"
     },
     es: {
         "footer_names": "amonbaro | cmansey | mdanchev | abarras",
@@ -238,19 +248,35 @@ const translations = {
         "must_have_name_and_keys": "debe tener un nombre y teclas asignadas!",
         "name_already_used": "El nombre ya está siendo utilizado por otro jugador. Por favor elija un nombre diferente.",
         "same_key_error": "no puede tener la misma tecla para Arriba y Abajo.",
-        "key_already_assigned": "La tecla ya está asignada a otro jugador."
+        "key_already_assigned": "La tecla ya está asignada a otro jugador.",
+        "back_to_menu": "Volver al menú",
+        "go_to_settings": "Ir a configuración"
     }
 };
 
-// Charger le contenu traduit au chargement de la page
 document.addEventListener('DOMContentLoaded', () => {
+    // Ajouter le footer uniquement si nécessaire
     addFooter();
-    checkForMessage();
-    const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
-    document.getElementById('languageSelector').value = savedLanguage;
-    changeLanguage(); // Appliquer la langue sauvegardée
-    document.getElementById('languageSelector').addEventListener('change', changeLanguage);
 
-    // Appliquer la langue toutes les 100ms pour les éléments ajoutés dynamiquement
+    // Charger la langue sauvegardée ou utiliser 'en' par défaut
+    const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+
+    // Si un sélecteur de langue est présent, le mettre à jour et ajouter l'événement de changement
+    const languageSelector = document.getElementById('languageSelector');
+    if (languageSelector) {
+        languageSelector.value = savedLanguage;
+        languageSelector.addEventListener('change', () => {
+            localStorage.setItem('selectedLanguage', languageSelector.value);
+            changeLanguage();
+        });
+    }
+
+    // Appliquer la langue sauvegardée à tous les éléments traduisibles
+    changeLanguage();
+
+    // Appliquer la langue toutes les 100 ms pour les éléments ajoutés dynamiquement
     setInterval(changeLanguage, 10);
 });
+
+
+

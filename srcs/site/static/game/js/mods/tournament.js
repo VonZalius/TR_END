@@ -37,11 +37,14 @@ export class Tournament {
         if (langue == 0) {
             this.gameTitle = "Tournament Mode";
             this.gameSubtitle = "First to ";
-        }
-        else if (langue == 1) {
+        } else if (langue == 1) {
             this.gameTitle = "Mode Tournoi";
             this.gameSubtitle = "Premier à ";
+        } else if (langue == 2) {
+            this.gameTitle = "Modo Torneo";
+            this.gameSubtitle = "Primero a ";
         }
+        
 
         this.maxScore = maxScore - 1;
         this.walls = {
@@ -153,10 +156,12 @@ export class Tournament {
         setTimeout(() => {
             if (this.langue == 0) {
                 this.score.drawFlat("Press any key to start.", 30, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2);
-            }
-            else if (this.langue == 1) {
+            } else if (this.langue == 1) {
                 this.score.drawFlat("Appuyez sur n'importe quelle touche.", 30, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2);
+            } else if (this.langue == 2) {
+                this.score.drawFlat("Presione cualquier tecla.", 30, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2);
             }
+            
             waitForKeyPress(() => {
                 this.balls.forEach(ball => ball.spawn(this.gameArea, directions));
                 this.loop();
@@ -212,11 +217,13 @@ export class Tournament {
             this.score.drawEnd(1);
             setTimeout(() => {
                 if (this.langue == 0) {
-                    this.score.drawFlat("Press any key.", 20, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2 + 50)
+                    this.score.drawFlat("Press any key.", 20, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2 + 50);
+                } else if (this.langue == 1) {
+                    this.score.drawFlat("Appuyez sur une touche.", 20, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2 + 50);
+                } else if (this.langue == 2) {
+                    this.score.drawFlat("Presione una tecla.", 20, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2 + 50);
                 }
-                else if (this.langue == 1) {
-                    this.score.drawFlat("Appuyez sur une touche.", 20, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2 + 50)
-                }
+                
                 waitForKeyPress(() => {
                     this.advanceTournament(this.score.player1Name);
                 });
@@ -227,11 +234,13 @@ export class Tournament {
             this.score.drawEnd(2);
             setTimeout(() => {
                 if (this.langue == 0) {
-                    this.score.drawFlat("Press any key.", 20, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2 + 50)
+                    this.score.drawFlat("Press any key.", 20, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2 + 50);
+                } else if (this.langue == 1) {
+                    this.score.drawFlat("Appuyez sur une touche.", 20, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2 + 50);
+                } else if (this.langue == 2) {
+                    this.score.drawFlat("Presione una tecla.", 20, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2 + 50);
                 }
-                else if (this.langue == 1) {
-                    this.score.drawFlat("Appuyez sur une touche.", 20, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2 + 50)
-                }
+                
                 waitForKeyPress(() => {
                     this.advanceTournament(this.score.player2Name);
                 });

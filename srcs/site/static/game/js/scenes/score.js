@@ -69,6 +69,9 @@ export class Score {
         } else if (this.langue == 1) {
             sentence = 'vient de gagner la partie!';
             sentence2 = 'a aussi gagné la partie!';
+        } else if (this.langue == 2) {
+            sentence = 'acaba de ganar el juego!';
+            sentence2 = 'también ganó el juego!';
         }
 
         let winnerName = '';
@@ -112,9 +115,20 @@ export class Score {
         this.ctx.fillStyle = 'white';
         this.ctx.textAlign = 'center';
 
-        let sentence = this.langue == 0 ? 'wins' : 'a gagné';
+        let sentence = this.langue == 0 ? 'wins' : this.langue == 1 ? 'a gagné' : 'ha ganado';
 
-        this.ctx.fillText(`Round ${round}`, startX, startY);
+        let roundText;
+
+        if (this.langue == 0) {
+            roundText = `Round ${round}`;
+        } else if (this.langue == 1) {
+            roundText = `Manche ${round}`;
+        } else if (this.langue == 2) {
+            roundText = `Ronda ${round}`;
+        }
+
+        this.ctx.fillText(roundText, startX, startY);
+
         startY += 30;
 
         this.finalTournamentScore = [];
@@ -142,8 +156,9 @@ export class Score {
         this.ctx.fillStyle = 'white';
         this.ctx.textAlign = 'center';
 
-        let sentence = this.langue == 0 ? 'wins the tournament!' : 'a gagné le tournoi!';
-        let sentence2 = this.langue == 0 ? 'rounds win' : 'rounds gagnés';
+        let sentence = this.langue == 0 ? 'wins the tournament!' : this.langue == 1 ? 'a gagné le tournoi!' : 'ha ganado el torneo!';
+        let sentence2 = this.langue == 0 ? 'rounds win' : this.langue == 1 ? 'rounds gagnés' : 'rondas ganadas';
+
 
         this.ctx.fillText(`${winner} ` + sentence, this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
 

@@ -3,7 +3,7 @@ import { main } from '../game/games.js';
 document.addEventListener("DOMContentLoaded", () => {
     // Charger les options de jeu depuis localStorage
     const gameOptions = JSON.parse(localStorage.getItem('gameOptions'));
-	let gameSession = JSON.parse(localStorage.getItem('gameSession'));
+    let gameSession = JSON.parse(localStorage.getItem('gameSession'));
 
     // Si une session de jeu existe déjà, mettre à jour la date de début pour refléter l'actualisation de la page
     if (gameSession) {
@@ -14,6 +14,21 @@ document.addEventListener("DOMContentLoaded", () => {
     // Vérifier si les options existent avant de lancer le jeu
     if (gameOptions) {
         const { mode, playerNames, playerKeys, maxScore, paddleSpeed, paddleSize, bounceMode, ballSpeed, ballAcceleration, numBalls, map } = gameOptions;
+
+        // Récupérer la langue du footer
+        const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+        let languageIndex = 0;
+
+        switch (selectedLanguage) {
+            case 'fr':
+                languageIndex = 1;
+                break;
+            case 'es':
+                languageIndex = 2;
+                break;
+            default:
+                languageIndex = 0;
+        }
 
         // Appeler la fonction main avec les options de jeu et les touches des joueurs
         main(
@@ -27,8 +42,8 @@ document.addEventListener("DOMContentLoaded", () => {
             parseInt(ballSpeed),            // Vitesse de la balle
             parseInt(ballAcceleration),     // Accélération de la balle
             parseInt(numBalls),             // Nombre de balles
-            parseInt(map),                   // Carte
-			0
+            parseInt(map),                  // Carte
+            languageIndex                   // Indice de la langue
         );
     } else {
         alert("No game options found!");
@@ -50,3 +65,4 @@ document.addEventListener('keydown', function(event) {
         event.preventDefault();
     }
 });
+

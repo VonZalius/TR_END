@@ -38,11 +38,14 @@ export class Versus {
         if (langue == 0) {
             this.gameTitle = "Versus Mode";
             this.gameSubtitle = "First to ";
-        }
-        else if (langue == 1) {
-            this.gameTitle = "Mode Versus";
+        } else if (langue == 1) {
+            this.gameTitle = "Mode Face-à-face";
             this.gameSubtitle = "Premier à ";
+        } else if (langue == 2) {
+            this.gameTitle = "Modo Versus";
+            this.gameSubtitle = "Primero a ";
         }
+        
 
         this.maxScore = maxScore - 1;
         this.walls = {
@@ -121,10 +124,12 @@ export class Versus {
         setTimeout(() => {
             if (this.langue == 0) {
                 this.score.drawFlat("Press any key to start.", 30, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2);
-            }
-            else if (this.langue == 1) {
+            } else if (this.langue == 1) {
                 this.score.drawFlat("Appuyez sur n'importe quelle touche.", 30, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2);
+            } else if (this.langue == 2) {
+                this.score.drawFlat("Presione cualquier tecla.", 30, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2);
             }
+            
             waitForKeyPress(() => {
                 this.balls.forEach(ball => ball.spawn(this.gameArea, directions));
                 this.loop();

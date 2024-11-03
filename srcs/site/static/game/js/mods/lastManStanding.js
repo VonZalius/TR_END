@@ -45,12 +45,15 @@ export class LastManStanding {
 
         if (langue == 0) {
             this.gameTitle = "Last Man Standing Mode";
-            this.gameSubtitle = "Number of lives : ";
+            this.gameSubtitle = "Number of lives: ";
+        } else if (langue == 1) {
+            this.gameTitle = "Mode Dernier en lice";
+            this.gameSubtitle = "Nombre de vies: ";
+        } else if (langue == 2) {
+            this.gameTitle = "Modo Último en pie";
+            this.gameSubtitle = "Número de vidas: ";
         }
-        else if (langue == 1) {
-            this.gameTitle = "Mode Dernier debout";
-            this.gameSubtitle = "Nombre de vies : ";
-        }
+        
 
         this.maxScore = maxScore - 1;
 
@@ -132,11 +135,13 @@ export class LastManStanding {
 
         setTimeout(() => {
             if (this.langue == 0) {
-                this.score.drawFlat("Press any key to start.", 30, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2)
+                this.score.drawFlat("Press any key to start.", 30, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2);
+            } else if (this.langue == 1) {
+                this.score.drawFlat("Appuyez sur n'importe quelle touche.", 30, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2);
+            } else if (this.langue == 2) {
+                this.score.drawFlat("Presione cualquier tecla.", 30, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2);
             }
-            else if (this.langue == 1) {
-                this.score.drawFlat("Appuyez sur n'importe quelle touche.", 30, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2)
-            }
+            
             waitForKeyPress(() => {
                 this.balls.forEach(ball => ball.spawn(this.gameArea, directions));
                 this.loop();
