@@ -26,6 +26,7 @@ export class BrickBreaker {
         this.bricks2 = [];
         this.bricksX = 50;
         this.bricksY = 20;
+		this.langue = langue;
 
         
         let team1Names = `${playerNames[0]}`;

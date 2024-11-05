@@ -159,7 +159,6 @@ export class Score {
         let sentence = this.langue == 0 ? 'wins the tournament!' : this.langue == 1 ? 'a gagné le tournoi!' : 'ha ganado el torneo!';
         let sentence2 = this.langue == 0 ? 'rounds win' : this.langue == 1 ? 'rounds gagnés' : 'rondas ganadas';
 
-
         this.ctx.fillText(`${winner} ` + sentence, this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
 
         this.finalTournamentScore.sort((a, b) => b[1] - a[1]);
