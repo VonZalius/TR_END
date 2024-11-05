@@ -32,11 +32,11 @@ export function initializeStartGame() {
 				break;
 			}
 
-			if (playerName.length > 15) {
+			/*if (playerName.length > 15) {
 				allFieldsValid = false;
 				alert(`Player ${i + 1} name must be 15 characters or less.`);
 				break;
-			}
+			}*/
 
 			if (mode !== 'tournament' || i < 2) {
 				if (upKey === downKey) {
