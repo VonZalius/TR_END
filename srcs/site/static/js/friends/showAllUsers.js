@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 	const newFriendRequestIndicator = document.getElementById('newFriendRequestIndicator');
 
     if (!accessToken) {
-        alert('Vous devez être connecté pour accéder à cette page.');
         window.location.href = 'login.html';
         return;
     }
@@ -128,7 +127,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (error) {
         console.error('Erreur lors de la gestion des utilisateurs et des amis:', error);
-        alert('Une erreur s\'est produite. Vérifiez la console pour plus de détails.');
     }
 });
 
@@ -153,7 +151,7 @@ async function sendFriendRequest(userId) {
             throw new Error(`Erreur lors de l'envoi de la demande d'ami: ${response.status} ${errorText}`);
         }
 
-        alert('Demande d\'ami envoyée avec succès !');
+		showMessage("Demande d\'ami envoyée avec succès !", "success");
         window.location.reload();
 
     } catch (error) {
@@ -180,7 +178,7 @@ async function acceptFriendRequest(userId) {
             throw new Error(`Erreur lors de l'acceptation de la demande d'ami: ${response.status} ${errorText}`);
         }
 
-        alert('Demande d\'ami acceptée avec succès.');
+		showMessage("Demande d\'ami acceptée avec succès.", "success");
         window.location.reload();
     } catch (error) {
         console.error('Erreur lors de l\'acceptation de la demande d\'ami:', error);
@@ -205,7 +203,7 @@ async function declineFriendRequest(userId) {
             throw new Error(`Erreur lors du refus de la demande d'ami: ${response.status} ${errorText}`);
         }
 
-        alert('Demande d\'ami refusée avec succès.');
+		showMessage("Demande d\'ami refusée avec succès.", "success");
         window.location.reload();
     } catch (error) {
         console.error('Erreur lors du refus de la demande d\'ami:', error);
@@ -230,7 +228,7 @@ async function cancelFriendRequest(userId) {
             throw new Error(`Erreur lors de l'annulation de la demande d'ami: ${response.status} ${errorText}`);
         }
 
-        alert('Demande d\'ami annulée avec succès.');
+		showMessage("Demande d\'ami annulée avec succès.", "success");
         window.location.reload();
     } catch (error) {
         console.error('Erreur lors de l\'annulation de la demande d\'ami:', error);

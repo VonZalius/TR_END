@@ -139,21 +139,6 @@
     }
 }
 
-.profile_preview {
-	display: none;
-	width: 150px;
-	height: 150px;
-	object-fit: cover;
-	border-radius: 50%;
-	margin-top: 15px;
-	display: block;
-	margin-left: auto;
-	margin-right: auto;
-	}
-.text-center {
-	text-align: center;
-}
-
 .profile-photo-wrapper-register
 {
     position: relative;
@@ -162,6 +147,15 @@
     border-radius: 100%;
     overflow: hidden;
 	display: none;
+}
+
+.profile-photo-register
+{
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: center;
+	border-radius: 100%;
 }
 
 .profile-photo-wrapper-nav

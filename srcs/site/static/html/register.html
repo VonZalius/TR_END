@@ -21,10 +21,10 @@
     </nav>
 
     <div class="text-center mt-5">
-        <h2 class="mb-4"data-translate="register_title">Register</h2>
+        <h2 class="mb-4" data-translate="register_title">Register</h2>
         <form id="registrationForm" class="w-50 mx-auto text-start" enctype="multipart/form-data">
             <div class="mb-3">
-                <label for="name" class="form-label"data-translate="name_label">Name :</label>
+                <label for="name" class="form-label" data-translate="name_label">Name :</label>
                 <div class="row">
                     <div class="col-md-6">
                         <input type="text" class="form-control" id="first_name" name="first_name" placeholder="First" data-translate="first_name_placeholder" required>
@@ -41,7 +41,7 @@
             </div>
 
             <div class="mb-3">
-                <label for="username" class="form-label"data-translate="username_label" >Username :</label>
+                <label for="username" class="form-label" data-translate="username_label" >Username :</label>
                 <input type="text" class="form-control" id="username" name="username" required>
             </div>
 
@@ -62,14 +62,10 @@
 
             <div class="mb-3 text-center">
                 <label for="profile_photo" class="form-label" data-translate="profile_photo_label">Profile Photo :</label>
-                <div class="custom-file-wrapper">
-                    <input type="file" class="form-control d-none" id="profile_photo" name="profile_photo" accept="image/*">
-                    <button type="button" class="btn btn-secondary" id="select_file_button" data-translate="select_file_button">Choose File</button>
-                    <span id="selected_file_name" data-translate="no_file_selected">No file selected</span>
-                </div>
-                <div class="mt-3 profile-photo-wrapper-register mx-auto">
-                    <img id="profile_preview" alt="Profile Preview" class="profile-photo-register" data-translate="profile_preview_alt">
-                </div>          
+                <input type="file" class="form-control" id="profile_photo" name="profile_photo" accept="image/*">
+				<div class="mt-3 profile-photo-wrapper-register mx-auto">
+					<img id="profile_preview" alt="Profile Preview" class="profile-photo-register" data-translate="profile_preview_alt">
+				</div>			
             </div>
 
             <button type="submit" class="btn btn-primary d-block mx-auto mt-5" data-translate="submit_button">Submit</button>

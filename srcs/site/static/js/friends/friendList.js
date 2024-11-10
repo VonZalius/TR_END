@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const friendListContainerElement = document.getElementById('friendListContainer');
 
     if (!accessToken) {
-        alert('Vous devez être connecté pour accéder à cette page.');
         window.location.href = 'login.html';
         return;
     }
@@ -63,7 +62,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (error) {
         console.error('Erreur lors de la récupération des amis:', error);
-        alert('Une erreur s\'est produite. Vérifiez la console pour plus de détails.');
     }
 });
 
@@ -232,7 +230,7 @@ async function removeFriend(friendId) {
             throw new Error(`Erreur lors de la suppression de l'ami: ${response.status} ${errorText}`);
         }
 
-        alert('Ami supprimé avec succès');
+		showMessage("Ami supprimé avec succès", "success");
         window.location.reload();
 
     } catch (error) {

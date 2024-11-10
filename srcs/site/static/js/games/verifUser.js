@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		};
 
         if (!email || !password) {
-            alert('Veuillez entrer votre email et mot de passe.');
+            showMessage("Veuillez entrer votre email et mot de passe.", "warning");
             return;
         }
 
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Vérification si l'utilisateur est déjà utilisé pour un autre joueur
             if (verifiedUsers.has(userData.username)) {
-                alert('Cet utilisateur est déjà connecté pour un autre joueur.');
+				showMessage("Cet utilisateur est déjà connecté pour un autre joueur.", "warning");
                 return;
             }
 
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Erreur lors de la connexion:', error);
-            alert('Une erreur s\'est produite lors de la connexion. Vérifiez vos identifiants.');
+			showMessage("Une erreur s\'est produite lors de la connexion. Vérifiez vos identifiants.", "warning");
         }
     };
 
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const playerName = inputField.value.trim();
 
             if (usedUsernames.has(playerName)) {
-                alert('Ce nom est déjà utilisé par un joueur vérifié. Veuillez en choisir un autre.');
+				showMessage("e nom est déjà utilisé par un joueur vérifié. Veuillez en choisir un autre.", "warning");
                 inputField.value = ''; // Effacer le champ si le nom est déjà utilisé
             }
         }

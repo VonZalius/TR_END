@@ -4,7 +4,7 @@ services:
     image: postgres:custom
     container_name: postgres
     expose:
-      - "5432:5432"
+      - "5432"
     networks:
       - pong_network
     env_file:
@@ -91,29 +91,30 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: site/static
+      device: /home/abarrass/Desktop/v130/srcs/site/static  # Updated path
       o: bind
   media_files:
     name: media_files
     driver: local
     driver_opts:
       type: none
-      device: site/media
+      device: /home/abarrass/Desktop/v130/srcs/site/media  # Updated path
       o: bind
   profile_photos:
     name: profile_photos
     driver: local
     driver_opts:
       type: none
-      device: site/profile_photos
+      device: /home/abarrass/Desktop/v130/srcs/site/profile_photos  # Updated path
       o: bind
   errors:
     name: errors
     driver: local
     driver_opts:
       type: none
-      device: site/errors
+      device: /home/abarrass/Desktop/v130/srcs/site/errors  # Updated path
       o: bind
+
 
 
 secrets:

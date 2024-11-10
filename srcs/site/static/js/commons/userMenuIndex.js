@@ -19,37 +19,41 @@ document.addEventListener('DOMContentLoaded', async () => {
                 },
             });
 
-            if (!response.ok) throw new Error('Erreur lors de la récupération du profil');
-
+            if (!response.ok) throw new Error(`Erreur lors de la récupération du profil: ${response.status}`);
+            
             const profileData = await response.json();
             return profileData.profile_photo || '../../profile_photos/default/default-user-profile-photo.jpg';
         } catch (error) {
-            console.error('Erreur lors de la récupération de la photo de profil:', error);
+            showMessage("Impossible de charger la photo de profil.", "danger");
             return '../../profile_photos/default/default-user-profile-photo.jpg';
         }
     }
 
-    // Si des tokens sont présents, on vérifie leur validité
-    if (accessToken) {
+    async function verifyToken() {
         try {
-            // Étape 1: Vérification du token avec l'API /token/verify/
             const verifyResponse = await fetch('https://localhost:8000/api/user/token/verify/', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ token: accessToken }), // Vérification du token
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: accessToken }),
             });
 
             if (!verifyResponse.ok) {
-                // Si la vérification échoue, on supprime les tokens et redirige l'utilisateur
                 clearTokens();
-                alert('Session expirée. Veuillez vous reconnecter.');
+                showMessage("Session expirée. Veuillez vous reconnecter.", "warning");
                 window.location.href = 'index.html';
-                return;
+                return false;
             }
+            return true;
+        } catch (error) {
+            clearTokens();
+            showMessage("Erreur réseau. Veuillez vous reconnecter.", "danger");
+            window.location.href = 'index.html';
+            return false;
+        }
+    }
 
-            // Étape 2: Vérification que l'utilisateur existe encore avec l'API /user/profile/
+    async function verifyUser() {
+        try {
             const profileResponse = await fetch('https://localhost:8000/api/user/profile/', {
                 method: 'GET',
                 headers: {
@@ -59,34 +63,40 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             if (!profileResponse.ok) {
-                // Si l'utilisateur n'existe plus (404 ou 401), on supprime les tokens
                 clearTokens();
-                alert('Votre compte a été supprimé ou vous n\'êtes plus connecté.');
+                showMessage("Votre compte a été supprimé ou vous n'êtes plus connecté.", "warning");
                 window.location.href = 'index.html';
-                return;
+                return false;
             }
-
+            return true;
         } catch (error) {
-            // En cas d'erreur réseau ou autre, on supprime les tokens et redirige
             clearTokens();
-            console.error('Erreur lors de la vérification des tokens ou du profil:', error);
+            showMessage("Erreur réseau lors de la vérification du profil. Veuillez vous reconnecter.", "danger");
             window.location.href = 'index.html';
-            return;
+            return false;
         }
+    }
+
+    // Vérification des tokens et de l'utilisateur
+    if (accessToken) {
+        const tokenValid = await verifyToken();
+        if (!tokenValid) return;
+
+        const userExists = await verifyUser();
+        if (!userExists) return;
     }
 
     checkForMessage();
 
+    // Construction du menu utilisateur en fonction de l'état de connexion
     if (accessToken) {
-		const profilePhoto = await getProfilePhoto();
-        // Si un utilisateur est connecté
-        userMenu.innerHTML =
-            `
-			<a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-				<div class="profile-photo-wrapper-nav">
-					<img src="${profilePhoto}" alt="User Menu" class="profile-photo">
-				</div>
-			</a>
+        const profilePhoto = await getProfilePhoto();
+        userMenu.innerHTML = `
+            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="profile-photo-wrapper-nav">
+                    <img src="${profilePhoto}" alt="User Menu" class="profile-photo">
+                </div>
+            </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                 <li><a class="dropdown-item" href="html/profile.html">Profile</a></li>
                 <li><a class="dropdown-item" href="#" id="logoutBtn">Logout</a></li>
@@ -95,7 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         document.getElementById('logoutBtn').addEventListener('click', async () => {
             if (!refreshToken) {
-                alert('Vous n\'êtes pas connecté.');
+                showMessage("Vous n'êtes pas connecté.", "warning");
                 window.location.href = 'index.html';
                 return;
             }
@@ -115,20 +125,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                     throw new Error(`Erreur lors de la déconnexion: ${response.status} ${errorText}`);
                 }
 
-                // Suppression des tokens après déconnexion
                 clearTokens();
                 localStorage.setItem('successMessage', 'Déconnexion réussie !');
                 window.location.href = 'index.html';
 
             } catch (error) {
-                console.error('Erreur lors de la déconnexion:', error);
-                alert('Une erreur s\'est produite lors de la déconnexion. Vérifiez la console pour plus de détails.');
+                showMessage("Une erreur s'est produite lors de la déconnexion.", "danger");
             }
         });
     } else {
-        // Si aucun utilisateur n'est connecté
-        userMenu.innerHTML =
-            `
+        userMenu.innerHTML = `
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <img src="../../profile_photos/default/default-user-profile-photo.jpg" alt="User Menu" width="50" height="50" class="rounded-circle">
             </a>
@@ -140,15 +146,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
+// Animation blob
 const blob = document.querySelector('.blob');
-
 document.addEventListener('mousemove', (e) => {
     const { clientX, clientY } = e;
-
-    // Récupérer la vitesse de déplacement de la souris
     const speed = Math.min(10, Math.hypot(e.movementX, e.movementY) / 10);
-
-    // Ajuster la taille du blob pour donner un effet d'étirement
     blob.style.transform = `translate3d(calc(${clientX}px - 50%), calc(${clientY}px - 50%), 0) scale(${1 + speed / 10})`;
 });
-

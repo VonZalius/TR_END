@@ -52,6 +52,9 @@ export class LastManStanding {
         } else if (langue == 2) {
             this.gameTitle = "Modo Último en pie";
             this.gameSubtitle = "Número de vidas: ";
+        } else if (langue == 3) {
+            this.gameTitle = "Режим Последният оцелял";
+            this.gameSubtitle = "Брой животи: ";
         }
         
 
@@ -140,6 +143,8 @@ export class LastManStanding {
                 this.score.drawFlat("Appuyez sur n'importe quelle touche.", 30, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2);
             } else if (this.langue == 2) {
                 this.score.drawFlat("Presione cualquier tecla.", 30, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2);
+            } else if (this.langue == 3) {
+                this.score.drawFlat("Натиснете произволен клавиш.", 30, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
             }
             
             waitForKeyPress(() => {

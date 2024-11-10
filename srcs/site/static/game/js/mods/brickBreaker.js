@@ -47,6 +47,9 @@ export class BrickBreaker {
         } else if (langue == 2) {
             this.gameTitle = "Modo Rompe Ladrillos";
             this.gameSubtitle = "Primero a ";
+        } else if (langue == 3) {
+            this.gameTitle = "Режим Трошач на тухли";
+            this.gameSubtitle = "Първи до ";
         }
 
         if (map == 1) {
@@ -141,6 +144,8 @@ export class BrickBreaker {
                 this.score.drawFlat("Appuyez sur n'importe quelle touche.", 30, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2);
             } else if (this.langue == 2) {
                 this.score.drawFlat("Presione cualquier tecla.", 30, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2);
+            } else if (this.langue == 3) {
+                this.score.drawFlat("Натиснете произволен клавиш.", 30, 'white', 'center', this.ctx.canvas.width / 2, this.ctx.canvas.width / 2);
             }
             
             waitForKeyPress(() => {

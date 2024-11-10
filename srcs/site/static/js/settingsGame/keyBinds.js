@@ -1,4 +1,4 @@
-export function handleKeyBindings(index, mode){
+export function handleKeyBindings(index, mode) {
 	document.getElementById(`player${index}Up`).addEventListener('keydown', function(event) {
 		event.preventDefault();
 		const key = event.key;
@@ -90,7 +90,7 @@ export function handleKeyBindings(index, mode){
 				}
 			}
 		} else {
-			alert("Only lowercase letters, numbers, and arrow keys are allowed.");
+			showMessage("Only lowercase letters, numbers, and arrow keys are allowed.", "warning");
 		}
 	});
 }

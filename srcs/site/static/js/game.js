@@ -26,6 +26,9 @@ document.addEventListener("DOMContentLoaded", () => {
             case 'es':
                 languageIndex = 2;
                 break;
+                case 'bg':
+                languageIndex = 3;
+                break;
             default:
                 languageIndex = 0;
         }
@@ -47,6 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     } else {
         alert("No game options found!");
+		window.location.href = './settingsGame.html';
     }
 });
 

@@ -72,6 +72,9 @@ export class Score {
         } else if (this.langue == 2) {
             sentence = 'acaba de ganar el juego!';
             sentence2 = 'también ganó el juego!';
+        } else if (this.langue == 3) {
+            sentence = 'току-що спечели играта!';
+            sentence2 = 'също спечели играта!';
         }
 
         let winnerName = '';
@@ -115,7 +118,11 @@ export class Score {
         this.ctx.fillStyle = 'white';
         this.ctx.textAlign = 'center';
 
-        let sentence = this.langue == 0 ? 'wins' : this.langue == 1 ? 'a gagné' : 'ha ganado';
+        let sentence = this.langue == 0 ? 'wins' : 
+               this.langue == 1 ? 'a gagné' : 
+               this.langue == 2 ? 'ha ganado' : 
+               'спечели';
+
 
         let roundText;
 
@@ -125,6 +132,8 @@ export class Score {
             roundText = `Manche ${round}`;
         } else if (this.langue == 2) {
             roundText = `Ronda ${round}`;
+        } else if (this.langue == 3) {
+            roundText = `Рунд ${round}`;
         }
 
         this.ctx.fillText(roundText, startX, startY);
@@ -156,8 +165,16 @@ export class Score {
         this.ctx.fillStyle = 'white';
         this.ctx.textAlign = 'center';
 
-        let sentence = this.langue == 0 ? 'wins the tournament!' : this.langue == 1 ? 'a gagné le tournoi!' : 'ha ganado el torneo!';
-        let sentence2 = this.langue == 0 ? 'rounds win' : this.langue == 1 ? 'rounds gagnés' : 'rondas ganadas';
+        let sentence = this.langue == 0 ? 'wins the tournament!' : 
+                this.langue == 1 ? 'a gagné le tournoi!' : 
+                this.langue == 2 ? 'ha ganado el torneo!' : 
+                'спечели турнира!';
+
+        let sentence2 = this.langue == 0 ? 'rounds win' : 
+                this.langue == 1 ? 'rounds gagnés' : 
+                this.langue == 2 ? 'rondas ganadas' : 
+                'спечелени рундове';
+
 
         this.ctx.fillText(`${winner} ` + sentence, this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
 
