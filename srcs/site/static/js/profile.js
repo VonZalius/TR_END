@@ -1,265 +1,341 @@
-document.addEventListener('DOMContentLoaded', async () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const showAllUsers = urlParams.get('showAllUsers');
+import { refreshComponent } from './commons/componentManager.js';
 
-    if (showAllUsers === 'true') {
-        const allUsersContainer = document.getElementById('allUsersContainer');
-        const allUsersButton = document.querySelector('[data-bs-target="#allUsersContainer"]') || 
-                               document.querySelector('[href="#allUsersContainer"]');
-
-        // Ouvre le container si le paramètre est présent
-        if (allUsersContainer && !allUsersContainer.classList.contains('show')) {
-            new bootstrap.Collapse(allUsersContainer, { toggle: true });
-            if (allUsersButton) {
-                allUsersButton.setAttribute('aria-expanded', 'true');
-            }
-        }
-
-        // Supprime le paramètre showAllUsers de l'URL après ouverture
-        urlParams.delete('showAllUsers');
-        const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
-        window.history.replaceState(null, '', newUrl);
-    }
-
-    const accessToken = localStorage.getItem('accessToken');
-    const userFirstName = document.getElementById('userFirstName');
+export async function fetchUserProfile() {
+	const accessToken = localStorage.getItem('accessToken');
+	const userFirstName = document.getElementById('userFirstName');
 	const userLastName = document.getElementById('userLastName');
-    const userUsername = document.getElementById('userUsername');
+	const userUsername = document.getElementById('userUsername');
 	const userEmail = document.getElementById('userEmail');
 	const profilePhoto = document.getElementById('profilePhoto');
-    const editOverlay = document.querySelector('.edit-overlay');
-    const changePasswordBtn = document.getElementById('changePasswordBtn');
-    const changePasswordForm = document.getElementById('changePasswordForm');
-    const passwordChangeMessage = document.getElementById('passwordChangeMessage');
 
-	// Récupération des éléments pour modification de profil
+	if (!accessToken) {
+		alert('You must be logged in to access this page.');
+		window.location.href = '#/login';
+		return;
+	}
+
+	try {
+		const response = await fetch('https://localhost:8000/api/user/profile/', {
+			method: 'GET',
+			headers: {
+				'Authorization': `Bearer ${accessToken}`,
+				'Content-Type': 'application/json',
+			},
+		});
+
+		if (!response.ok) {
+			const errorText = await response.text();
+			throw new Error(`Error retrieving profile: ${response.status} ${errorText}`);
+		}
+
+		const profileData = await response.json();
+		profilePhoto.src = profileData.profile_photo;
+		userFirstName.textContent = profileData.first_name;
+		userLastName.textContent = profileData.last_name;
+		userUsername.textContent = profileData.username;
+		userEmail.textContent = profileData.email;
+	} catch (error) {
+		console.error('Error retrieving profile data:', error);
+		window.location.href = '#/login';
+	}
+}
+
+export function initProfileHandlers() {
+	const profilePhoto = document.getElementById('profilePhoto');
+	const editOverlay = document.querySelector('.edit-overlay');
+	const changePasswordBtn = document.getElementById('changePasswordBtn');
+	const changePasswordForm = document.getElementById('changePasswordForm');
+	const passwordChangeMessage = document.getElementById('passwordChangeMessage');
 	const editProfileBtn = document.getElementById('editProfileBtn');
 	const editFirstName = document.getElementById('editFirstName');
 	const editLastName = document.getElementById('editLastName');
 	const editUsername = document.getElementById('editUsername');
 	const editEmail = document.getElementById('editEmail');
 	const editProfileForm = document.getElementById('editProfileForm');
+	const profileEditMessage = document.getElementById('profileEditMessage');
 
-    if (!accessToken) {
-        alert('Vous devez être connecté pour accéder à cette page.');
-        window.location.href = 'login.html';
-        return;
-    }
+	const accessToken = localStorage.getItem('accessToken');
 
-    try {
-        const response = await fetch('https://localhost:8000/api/user/profile/', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json',
-            },
-        });
+	editOverlay.addEventListener('click', () => {
+		const editProfilePhotoModal = new bootstrap.Modal(document.getElementById('editProfilePhotoModal'));
+		editProfilePhotoModal.show();
+	});
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Erreur lors de la récupération du profil: ${response.status} ${errorText}`);
-        }
+	document.getElementById('profilePhotoForm').addEventListener('submit', async (event) => {
+		event.preventDefault();
+		const formData = new FormData();
+		const newPhoto = document.getElementById('newProfilePhoto').files[0];
 
-        const profileData = await response.json();
-        profilePhoto.src = profileData.profile_photo;
-        userFirstName.textContent = profileData.first_name;
-        userLastName.textContent = profileData.last_name;
-        userUsername.textContent = profileData.username;
-		userEmail.textContent = profileData.email;
-    } catch (error) {
-        console.error('Erreur lors de la récupération des données du profil:', error);
-        window.location.href = 'login.html';
-    }
+		if (newPhoto) {
+			formData.append('profile_photo', newPhoto);
+		}
 
-    // Ouvrir la modale de modification de la photo de profil
-    editOverlay.addEventListener('click', () => {
-        const editProfilePhotoModal = new bootstrap.Modal(document.getElementById('editProfilePhotoModal'));
-        editProfilePhotoModal.show();
-    });
+		try {
+			const response = await fetch('https://localhost:8000/api/user/profile/', {
+				method: 'PATCH',
+				headers: {
+					'Authorization': `Bearer ${accessToken}`,
+				},
+				body: formData,
+			});
 
-    // Gérer la soumission du formulaire pour télécharger une nouvelle photo
-    document.getElementById('profilePhotoForm').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const formData = new FormData();
-        const newPhoto = document.getElementById('newProfilePhoto').files[0];
+			if (!response.ok) {
+				throw new Error(`Error updating profile photo: ${response.status}`);
+			}
 
-        if (newPhoto) {
-            formData.append('profile_photo', newPhoto);
-        }
+			const result = await response.json();
+			profilePhoto.src = result.profile_photo;
+			const editProfilePhotoModal = bootstrap.Modal.getInstance(document.getElementById('editProfilePhotoModal'));
+			editProfilePhotoModal.hide();
+			refreshComponent('navbar');
+		} catch (error) {
+			console.error('Error updating profile photo:', error);
+		}
+	});
 
-        try {
-            const response = await fetch('https://localhost:8000/api/user/profile/', {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                },
-                body: formData,
-            });
+	document.getElementById('deletePhotoButton').addEventListener('click', async () => {
+		try {
+			const response = await fetch('https://localhost:8000/api/user/profile/', {
+				method: 'PATCH',
+				headers: {
+					'Authorization': `Bearer ${accessToken}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ delete_photo: "True" }),
+			});
 
-            if (!response.ok) {
-                throw new Error(`Erreur lors de la mise à jour de la photo de profil: ${response.status}`);
-            }
+			if (!response.ok) {
+				throw new Error(`Error deleting profile photo: ${response.status}`);
+			}
 
-            const result = await response.json();
-            profilePhoto.src = result.profile_photo; // Met à jour l'image affichée
-            const editProfilePhotoModal = bootstrap.Modal.getInstance(document.getElementById('editProfilePhotoModal'));
-            editProfilePhotoModal.hide();
+			profilePhoto.src = '../../profile_photos/default/default-user-profile-photo.jpg';
+			document.getElementById('newProfilePhoto').value = '';
+			const editProfilePhotoModal = bootstrap.Modal.getInstance(document.getElementById('editProfilePhotoModal'));
+			editProfilePhotoModal.hide();
+			refreshComponent('navbar');
+		} catch (error) {
+			console.error('Error deleting profile photo:', error);
+		}
+	});
 
-			location.reload();
-        } catch (error) {
-            console.error('Erreur lors de la mise à jour de la photo de profil:', error);
-        }
-    });
+	changePasswordBtn.addEventListener('click', () => {
+		const changePasswordModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+		changePasswordModal.show();
+	});
 
-    // Gérer le clic sur le bouton de suppression de la photo
-    document.getElementById('deletePhotoButton').addEventListener('click', async () => {
-        try {
-            const response = await fetch('https://localhost:8000/api/user/profile/', {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ delete_photo: "True" }),
-            });
+	changePasswordForm.addEventListener('submit', async (event) => {
+		event.preventDefault();
+		const oldPassword = document.getElementById('oldPassword').value;
+		const newPassword = document.getElementById('newPassword').value;
+		const confirmNewPassword = document.getElementById('confirmNewPassword').value;
 
-            if (!response.ok) {
-                throw new Error(`Erreur lors de la suppression de la photo de profil: ${response.status}`);
-            }
+		if (newPassword !== confirmNewPassword) {
+			passwordChangeMessage.innerHTML = '<div class="alert alert-danger">The new passwords do not match.</div>';
+			return;
+		}
 
-            profilePhoto.src = '../../profile_photos/default/default-user-profile-photo.jpg';
-            document.getElementById('newProfilePhoto').value = ''; // Réinitialiser le champ d'upload
-            const editProfilePhotoModal = bootstrap.Modal.getInstance(document.getElementById('editProfilePhotoModal'));
-            editProfilePhotoModal.hide();
-
-			location.reload();
-        } catch (error) {
-            console.error('Erreur lors de la suppression de la photo de profil:', error);
-        }
-    });
-
-    // Ouvrir le modal lors du clic sur le bouton "Changer le mot de passe"
-    changePasswordBtn.addEventListener('click', () => {
-        const changePasswordModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
-        changePasswordModal.show();
-    });
-
-    // Gestion de la soumission du formulaire de changement de mot de passe
-    changePasswordForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const oldPassword = document.getElementById('oldPassword').value;
-        const newPassword = document.getElementById('newPassword').value;
-        const confirmNewPassword = document.getElementById('confirmNewPassword').value;
-
-        if (newPassword !== confirmNewPassword) {
-            passwordChangeMessage.innerHTML = '<div class="alert alert-danger">Les nouveaux mots de passe ne correspondent pas.</div>';
-            return;
-        }
-
-        try {
-            const response = await fetch('https://localhost:8000/api/user/change-password/', {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    old_password: oldPassword,
-                    new_password: newPassword,
-                    new_password2: confirmNewPassword,
-                }),
-            });
+		try {
+			const response = await fetch('https://localhost:8000/api/user/change-password/', {
+				method: 'PATCH',
+				headers: {
+					'Authorization': `Bearer ${accessToken}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					old_password: oldPassword,
+					new_password: newPassword,
+					new_password2: confirmNewPassword,
+				}),
+			});
 
 			if (!response.ok) {
 				const errorData = await response.json();
-			
-				// Rassemble les messages d'erreur dans un format lisible
-				const errorMessages = Object.values(errorData)
-					.flat()
-					.join('<br>');
-			
+				const errorMessages = Object.values(errorData).flat().join('<br>');
 				passwordChangeMessage.innerHTML = `<div class="alert alert-danger">${errorMessages}</div>`;
 				return;
 			}
-			
-            const result = await response.json();
-            passwordChangeMessage.innerHTML = `<div class="alert alert-success">${result.detail}</div>`;
-            changePasswordForm.reset();
 
-            // Fermer le modal après 2 secondes
-            setTimeout(() => {
-                const changePasswordModal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
-                changePasswordModal.hide();
-                passwordChangeMessage.innerHTML = ''; // Effacer les messages
-				localStorage.removeItem('accessToken'); // Supprime le token d'accès
-				window.location.href = 'login.html'; 
-            }, 2000);
+			const result = await response.json();
+			passwordChangeMessage.innerHTML = `<div class="alert alert-success">${result.detail}</div>`;
+			changePasswordForm.reset();
 
-        } catch (error) {
-            console.error('Erreur lors du changement de mot de passe:', error);
-            passwordChangeMessage.innerHTML = '<div class="alert alert-danger">Une erreur s\'est produite lors du changement de mot de passe.</div>';
-        }
-    });
+			setTimeout(() => {
+				const changePasswordModal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
+				changePasswordModal.hide();
+				passwordChangeMessage.innerHTML = '';
+				localStorage.removeItem('accessToken');
+				window.location.href = '#/login';
+			}, 2000);
 
-	// Bouton pour ouvrir la modale de modification du profil
-    editProfileBtn.addEventListener('click', () => {
-        const editProfileModal = new bootstrap.Modal(document.getElementById('editProfileModal'));
-        editFirstName.value = userFirstName.textContent;
-        editLastName.value = userLastName.textContent;
-        editUsername.value = userUsername.textContent;
-        editEmail.value = userEmail.textContent; // Assurez-vous que ce champ existe dans le HTML
-        editProfileModal.show();
-    });
+		} catch (error) {
+			console.error('Error changing password:', error);
+			passwordChangeMessage.innerHTML = '<div class="alert alert-danger">An error occurred while changing the password.</div>';
+		}
+	});
 
-    // Soumission du formulaire de modification du profil
-    editProfileForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
+	editProfileBtn.addEventListener('click', () => {
+		clearError(editFirstName);
+		clearError(editLastName);
+		clearError(editUsername);
+		clearError(editEmail);
+		profileEditMessage.innerHTML = '';
 
-        const updatedData = {
-            first_name: editFirstName.value,
-            last_name: editLastName.value,
-            username: editUsername.value,
-            email: editEmail.value,
-        };
+		editFirstName.value = document.getElementById('userFirstName').textContent;
+		editLastName.value = document.getElementById('userLastName').textContent;
+		editUsername.value = document.getElementById('userUsername').textContent;
+		editEmail.value = document.getElementById('userEmail').textContent;
 
-        try {
-            const response = await fetch('https://localhost:8000/api/user/profile/', {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(updatedData),
-            });
+		new bootstrap.Modal(document.getElementById('editProfileModal')).show();
+	});
+
+	editProfileForm.addEventListener('submit', async (event) => {
+		event.preventDefault();
+		if (!validateForm()) return;
+
+		const updatedData = {
+			first_name: editFirstName.value,
+			last_name: editLastName.value,
+			username: editUsername.value,
+			email: editEmail.value,
+		};
+
+		try {
+			const response = await fetch('https://localhost:8000/api/user/profile/', {
+				method: 'PATCH',
+				headers: {
+					'Authorization': `Bearer ${accessToken}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(updatedData),
+			});
 
 			if (!response.ok) {
 				const errorData = await response.json();
-			
-				// Crée un tableau d'erreurs en itérant sur chaque champ retourné par l'API
-				const errorMessages = Object.values(errorData)
-					.flat()  // Rassemble les messages dans un seul tableau
-					.join('<br>');  // Sépare chaque message par un saut de ligne
-			
+				const errorMessages = Object.values(errorData).flat().join('<br>');
 				profileEditMessage.innerHTML = `<div class="alert alert-danger">${errorMessages}</div>`;
 				return;
 			}
-			
 
-            const result = await response.json();
+			const result = await response.json();
+			document.getElementById('userFirstName').textContent = result.first_name;
+			document.getElementById('userLastName').textContent = result.last_name;
+			document.getElementById('userUsername').textContent = result.username;
+			document.getElementById('userEmail').textContent = result.email;
 
-            // Mettre à jour les éléments HTML avec les nouvelles données
-            userFirstName.textContent = result.first_name;
-            userLastName.textContent = result.last_name;
-            userUsername.textContent = result.username;
-            userEmail.textContent = result.email;
-
-            // Fermer la modale
-            const editProfileModal = bootstrap.Modal.getInstance(document.getElementById('editProfileModal'));
-            editProfileModal.hide();
+			const editProfileModal = bootstrap.Modal.getInstance(document.getElementById('editProfileModal'));
+			editProfileModal.hide();
 			profileEditMessage.innerHTML = '';
-        } catch (error) {
-            console.error('Erreur lors de la mise à jour du profil:', error);
-			profileEditMessage.innerHTML = '<div class="alert alert-danger">Une erreur est survenue lors de la mise à jour du profil.</div>';
-        }
-    });
-});
+		} catch (error) {
+			console.error('Error updating profile:', error);
+			profileEditMessage.innerHTML = '<div class="alert alert-danger">An error occurred while updating the profile.</div>';
+		}
+	});
+
+	document.getElementById('selectPhotoButton').addEventListener('click', () => {
+		document.getElementById('newProfilePhoto').click();
+	});
+
+	document.getElementById('newProfilePhoto').addEventListener('change', (event) => {
+		const file = event.target.files[0];
+		if (file) {
+			document.getElementById('fileNameDisplay').textContent = file.name;
+		}
+	});
+}
+
+function showError(field, message) {
+	clearError(field);
+	field.classList.add('is-invalid');
+	let errorElement = field.nextElementSibling;
+	if (!errorElement || !errorElement.classList.contains('invalid-feedback')) {
+		errorElement = document.createElement('div');
+		errorElement.classList.add('invalid-feedback');
+		field.parentNode.appendChild(errorElement);
+	}
+	errorElement.textContent = message;
+}
+
+function clearError(field) {
+	field.classList.remove('is-invalid');
+	const errorElement = field.nextElementSibling;
+	if (errorElement && errorElement.classList.contains('invalid-feedback')) {
+		errorElement.remove();
+	}
+}
+
+function validateFirstName() {
+	const namePattern = /^[A-Z][a-zA-Z -]{0,49}$/;
+	if (!namePattern.test(editFirstName.value.trim())) {
+
+		let firstNameErrorMessage;
+
+		firstNameErrorMessage = "The first name must begin with a capital letter.";
+
+		showError(editFirstName, firstNameErrorMessage);
+
+		return false;
+	} else {
+		clearError(editFirstName);
+		return true;
+	}
+}
+
+function validateLastName() {
+	const namePattern = /^[A-Z][a-zA-Z -]{0,49}$/;
+	if (!namePattern.test(editLastName.value.trim())) {
+
+		let lastNameErrorMessage;
+
+		lastNameErrorMessage = "The name must start with a capital letter.";
+
+		showError(editLastName, lastNameErrorMessage);
+
+		return false;
+	} else {
+		clearError(editLastName);
+		return true;
+	}
+}
+
+function validateUsername() {
+	const usernamePattern = /^[a-zA-Z0-9@#_-]{8}$/;
+	if (!usernamePattern.test(editUsername.value.trim())) {
+
+		let usernameErrorMessage;
+
+		usernameErrorMessage = "The username must contain exactly 8 characters: letters, numbers, - _ @ #";
+
+		showError(editUsername, usernameErrorMessage);
+
+		return false;
+	} else {
+		clearError(editUsername);
+		return true;
+	}
+}
+
+function validateEmail() {
+	const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	if (!emailPattern.test(editEmail.value)) {
+
+		let emailErrorMessage;
+
+		emailErrorMessage = "Invalid email address.";
+
+		showError(editEmail, emailErrorMessage);
+
+		return false;
+	} else {
+		clearError(editEmail);
+		return true;
+	}
+}
+
+function validateForm() {
+	let isValid = true;
+	if (!validateFirstName()) isValid = false;
+	if (!validateLastName()) isValid = false;
+	if (!validateUsername()) isValid = false;
+	if (!validateEmail()) isValid = false;
+	return isValid;
+}

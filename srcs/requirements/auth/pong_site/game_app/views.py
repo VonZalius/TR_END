@@ -259,6 +259,7 @@ class OtherUserMatchHistoryView(APIView):
             return Response(match_history, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+
 # ----------------------------------------------------------------------------------------------------------------------
 #class ShowAllGamesView(generics.ListAPIView):
 #    permission_classes = [AllowAny]

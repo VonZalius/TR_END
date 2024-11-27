@@ -8,6 +8,64 @@ import { map1 } from '../scenes/maps/VS.js';
 import { map2 } from '../scenes/maps/VS.js';
 import { map3 } from '../scenes/maps/VS.js';
 import { map4 } from '../scenes/maps/VS.js';
+import { tournamentContract } from '../../../js/games/registerGame.js';
+
+// Fonction pour récupérer dynamiquement et afficher l'historique des victoires depuis la blockchain
+async function afficherHistoriqueDepuisBlockchain() {
+    try {
+        const historique = {};
+
+        // Récupère les événements TournamentWinner depuis la blockchain
+        const events = await tournamentContract.getPastEvents('TournamentWinner', {
+            fromBlock: 0,
+            toBlock: 'latest'
+        });
+
+        for (const event of events) {
+            const { winner, timestamp } = event.returnValues;
+            const date = new Date(timestamp * 1000).toLocaleString();
+
+            // Ajoute ou incrémente le nombre de victoires et enregistre la date de chaque victoire
+            if (!historique[winner]) {
+                historique[winner] = { victoires: 1, dates: [date] };
+            } else {
+                historique[winner].victoires++;
+                historique[winner].dates.push(date);
+            }
+        }
+
+        return historique;
+    } catch (error) {
+        console.error("Erreur lors de la récupération de l'historique depuis la blockchain:", error);
+    }
+}
+
+// Fonction pour terminer le tournoi, afficher l'historique
+export async function terminerTournoi(wins) {
+    const gagnant = Object.keys(wins).reduce((a, b) => (wins[a] > wins[b] ? a : b));
+    console.log(`Le gagnant est : ${gagnant}`);
+
+    const historique = await afficherHistoriqueDepuisBlockchain();
+
+    console.log('Historique des tournois :');
+    for (const [joueur, data] of Object.entries(historique)) {
+        console.log(`${joueur} ${data.victoires} tournoi(s) gagné(s)`);
+        data.dates.forEach(date => console.log(`  - Victoire le ${date}`));
+    }
+}
+
+// Fonction principale pour initialiser et lancer le jeu
+async function main() {
+}
+
+// Exécuter l’application
+(async () => {
+    try {
+        await main();
+    } catch (error) {
+        console.error('Erreur lors de l\'initialisation de l\'application:', error);
+    }
+})();
 
 export class Tournament {
 
@@ -34,17 +92,17 @@ export class Tournament {
         this.wins = this.initializeWins(playerNames);
         this.activePlayers = playerNames.slice();
         
+        this.gameTitle = "Tournament Mode";
         if (langue == 0) {
-            this.gameTitle = "Tournament Mode";
             this.gameSubtitle = "First to ";
         } else if (langue == 1) {
-            this.gameTitle = "Mode Tournoi";
+            //this.gameTitle = "Mode Tournoi";
             this.gameSubtitle = "Premier à ";
         } else if (langue == 2) {
-            this.gameTitle = "Modo Torneo";
+            //this.gameTitle = "Modo Torneo";
             this.gameSubtitle = "Primero a ";
         } else if (langue == 3) {
-            this.gameTitle = "Режим Турнир";
+            //this.gameTitle = "Режим Турнир";
             this.gameSubtitle = "Първи до ";
         }
         

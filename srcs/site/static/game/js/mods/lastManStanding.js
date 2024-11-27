@@ -43,17 +43,17 @@ export class LastManStanding {
 
         this.score = new Score(langue, ctx, font, this.gameArea, `${playerNames[0]}`, `${playerNames[1]}`, `${playerNames[2]}`, `${playerNames[3]}`);
 
+        this.gameTitle = "Last Man Standing Mode";
         if (langue == 0) {
-            this.gameTitle = "Last Man Standing Mode";
             this.gameSubtitle = "Number of lives: ";
         } else if (langue == 1) {
-            this.gameTitle = "Mode Dernier en lice";
+            //this.gameTitle = "Mode Dernier en lice";
             this.gameSubtitle = "Nombre de vies: ";
         } else if (langue == 2) {
-            this.gameTitle = "Modo Último en pie";
+            //this.gameTitle = "Modo Último en pie";
             this.gameSubtitle = "Número de vidas: ";
         } else if (langue == 3) {
-            this.gameTitle = "Режим Последният оцелял";
+            //this.gameTitle = "Режим Последният оцелял";
             this.gameSubtitle = "Брой животи: ";
         }
         

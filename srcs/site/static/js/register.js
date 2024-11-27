@@ -1,5 +1,17 @@
-document.addEventListener('DOMContentLoaded', () => {
+export function initRegisterForm() {
     const form = document.getElementById('registrationForm');
+    const usernameInput = document.getElementById('username');
+    const usernameCharCount = document.getElementById('usernameCharCount');
+    const maxUsernameLength = 8;
+
+    const updateCharCount = () => {
+        const remainingChars = maxUsernameLength - usernameInput.value.length;
+        usernameCharCount.textContent = `Remaining characters : ${remainingChars}`;
+    };
+
+    usernameInput.addEventListener('input', updateCharCount);
+    updateCharCount();
+
     const passwordHelpBlock = document.getElementById('passwordHelpBlock');
     const profilePhotoInput = document.getElementById('profile_photo');
     const profilePreviewContainer = document.querySelector('.profile-photo-wrapper-register');
@@ -19,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function showError(field, message) {
+    const showError = (field, message) => {
         field.classList.add('is-invalid');
         let errorElement = field.nextElementSibling;
         if (!errorElement || !errorElement.classList.contains('invalid-feedback')) {
@@ -28,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
             field.parentNode.appendChild(errorElement);
         }
         errorElement.textContent = message;
-    }
+    };
 
     function clearError(field) {
         field.classList.remove('is-invalid');
@@ -77,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         passwordHelpBlock.innerHTML = isValid
-            ? "Must contain at least 12 characters<br>With: uppercase, lowercase, numeric, and special character<br>Can't be: your first name, last name, or email"
+            ? `At least 12 characters<br>Must contain uppercase, lowercase, numeric, and special character<br>Can't be your first name, last name, email, or username`
             : errorMessages.join('<br>');
         togglePasswordHelp(isValid);
 
@@ -93,7 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = document.getElementById('password').value;
         const password2 = document.getElementById('password2').value;
 
-        // Nom et prénom
         const namePattern = /^[A-Z][a-zA-Z -]{0,49}$/;
         if (!namePattern.test(firstName.value.trim())) {
             showError(firstName, 'First name must start with a capital letter.');
@@ -101,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             clearError(firstName);
         }
-
+    
         if (!namePattern.test(lastName.value.trim())) {
             showError(lastName, 'Last name must start with a capital letter.');
             isValid = false;
@@ -109,7 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
             clearError(lastName);
         }
 
-        // Adresse email
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailPattern.test(email.value)) {
             showError(email, 'Invalid email address.');
@@ -118,37 +128,34 @@ document.addEventListener('DOMContentLoaded', () => {
             clearError(email);
         }
 
-        // Nom d'utilisateur
         const usernamePattern = /^[a-zA-Z0-9@#_-]{8}$/;
         if (!usernamePattern.test(username.value.trim())) {
-            showError(username, 'Username can contain 8 characters with only letters, numbers, and - _ @ #');
+            showError(username, 'Username can contain 8 characters with only letters, numbers, and - _ @.');
             isValid = false;
         } else {
             clearError(username);
         }
 
-        // Mot de passe
         if (!validatePassword(password, firstName.value, lastName.value, email.value, username.value)) {
             isValid = false;
         }
 
-        // Confirmation du mot de passe
         if (password !== password2) {
             showError(document.getElementById('password2'), 'Passwords do not match.');
             isValid = false;
         } else {
             clearError(document.getElementById('password2'));
         }
-
+    
         return isValid;
     }
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
         if (!validateForm()) return;
-
+    
         const formData = new FormData(form);
-
+    
         try {
             const response = await fetch('https://localhost:8000/api/user/register/', {
                 method: 'POST',
@@ -156,18 +163,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 mode: 'cors',
                 body: formData,
             });
-
+    
             if (!response.ok) {
-                const errorText = await response.text();
-                showMessage(`Erreur HTTP: ${response.status} - ${errorText}`, 'danger');
+                const errorData = await response.json();
+                if (errorData.email) {
+                    showError(document.getElementById('email'), errorData.email[0]);
+                } else {
+                    showMessage(`Error HTTP: ${response.status} - ${errorData}`, 'danger');
+                }
                 return;
             }
-
+    
             const result = await response.json();
-            localStorage.setItem('successMessage', 'Inscription réussie !');
-            window.location.href = '../html/login.html';
+            localStorage.setItem('successMessage', 'Registration successful!');
+            window.location.href = '#/login'; // Adaptation pour la SPA
         } catch (error) {
-            showMessage("Une erreur s'est produite lors de l'inscription. Veuillez réessayer.", 'danger');
+            showMessage('An error occurred during registration. Please try again.', 'danger');
         }
     });
-});
+
+    document.getElementById('selectPhotoButton').addEventListener('click', () => {
+        document.getElementById('profile_photo').click();
+    });
+
+    document.getElementById('profile_photo').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            document.getElementById('fileNameDisplay').textContent = file.name;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('profile_preview').src = e.target.result;
+                document.querySelector('.profile-photo-wrapper-register').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            document.getElementById('fileNameDisplay').textContent = "";
+            document.getElementById('profile_preview').src = "";
+            document.querySelector('.profile-photo-wrapper-register').style.display = 'none';
+        }
+    });
+}

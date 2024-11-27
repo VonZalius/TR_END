@@ -19,4 +19,4 @@ RUN echo "*/1 * * * * curl -k -X POST https://auth:8000/api/user/flush-expired-t
     chmod 0644 /etc/cron.d/auth_tokens_cron && \
     crontab /etc/cron.d/auth_tokens_cron
 
-CMD service rsyslog start && cron -f
+CMD ["sh", "-c", "service rsyslog start && cron -f"]

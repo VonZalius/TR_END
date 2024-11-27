@@ -1,16 +1,16 @@
-// currUserHistory.js (modifié)
-
-document.addEventListener('DOMContentLoaded', () => {
+export function initUserMatchHistory() {
     const historyContainerLink = document.querySelector('[href="#matchHistoryContainer"]');
-    historyContainerLink.addEventListener('click', fetchUserMatchHistory);
-});
+    if (historyContainerLink) {
+        historyContainerLink.addEventListener('click', fetchUserMatchHistory);
+    }
+}
 
 async function fetchUserMatchHistory() {
     const accessToken = localStorage.getItem('accessToken');
     const matchHistoryContainer = document.getElementById('matchHistoryContainer');
 
     if (!accessToken) {
-        matchHistoryContainer.innerHTML = '<p class="text-danger">Vous devez être connecté pour voir votre historique.</p>';
+        matchHistoryContainer.innerHTML = '<p class="text-danger">You must be logged in to view your history.</p>';
         return;
     }
 
@@ -27,31 +27,30 @@ async function fetchUserMatchHistory() {
             const matchHistory = await response.json();
             displayMatchHistory(matchHistory);
         } else {
-            matchHistoryContainer.innerHTML = '<p class="text-danger">Impossible de récupérer l\'historique des parties.</p>';
+            matchHistoryContainer.innerHTML = '<p class="text-danger">Unable to retrieve game history.</p>';
         }
     } catch (error) {
-        console.error('Erreur lors de la récupération de l\'historique des parties :', error);
-        matchHistoryContainer.innerHTML = '<p class="text-danger">Erreur lors de la récupération de l\'historique des parties.</p>';
+        console.error('Error retrieving game history :', error);
+        matchHistoryContainer.innerHTML = '<p class="text-danger">Error retrieving game history.</p>';
     }
 }
 
 function displayMatchHistory(matches) {
     const matchHistoryContainer = document.getElementById('matchHistoryContainer');
-    matchHistoryContainer.innerHTML = ''; // Efface le contenu précédent
+    matchHistoryContainer.innerHTML = '';
 
     if (matches.length === 0) {
-        matchHistoryContainer.innerHTML = '<p>Aucune partie jouée pour le moment.</p>';
+        matchHistoryContainer.innerHTML = '<p>No games played yet.</p>';
         return;
     }
 
     matches.forEach((match, index) => {
         const matchCard = document.createElement('div');
-        matchCard.classList.add('card', 'mb-3', 'w-auto'); // Style de carte pour chaque fiche
+        matchCard.classList.add('card', 'mb-3', 'w-auto');
         matchCard.style.border = "1px solid";
         matchCard.style.backgroundColor = `var(${match.result === 'win' ? '--bs-success-bg-subtle' : '--bs-danger-bg-subtle'})`;
         matchCard.style.borderColor = `var(${match.result === 'win' ? '--bs-success-border-subtle' : '--bs-danger-border-subtle'})`;
 
-        // Convertir le mode en texte complet
         const modeText = getModeText(match.mode);
 
         matchCard.innerHTML = `
@@ -59,21 +58,21 @@ function displayMatchHistory(matches) {
                 <div class="col-md-8 d-flex flex-column justify-content-center">
                     <div class="card-body">
                         <h5 class="card-title">${modeText}</h5>
-						<p class="card-text user-joined-date">${formatDate(match.date_played)}</p>
+                        <p class="card-text user-joined-date">${formatDate(match.date_played)}</p>
                     </div>
                 </div>
                 <div class="col-md-4 d-flex align-items-center justify-content-center">
                     <button class="btn ${match.result === 'win' ? 'btn-outline-success' : 'btn-outline-danger'}" data-bs-toggle="collapse" data-bs-target="#matchDetails${index}">
-                        Détails
+                        Details
                     </button>
                 </div>
             </div>
             <div id="matchDetails${index}" class="collapse">
                 <!-- Détails supplémentaires affichés en accordéon -->
                 <div class="card-body d-flex flex-column justify-content-center">
-                    <p><strong>Durée :</strong> ${match.duration}</p>
-                    <p><strong>Nombre de joueurs :</strong> ${match.number_of_players}</p>
-                    ${match.teammate ? `<p><strong>Coéquipier :</strong> ${match.teammate}</p>` : ''}
+                    <p><strong>Duration :</strong> ${match.duration}</p>
+                    <p><strong>Number of players :</strong> ${match.number_of_players}</p>
+                    ${match.teammate ? `<p><strong>Teammate :</strong> ${match.teammate}</p>` : ''}
                 </div>
             </div>
         `;
@@ -82,7 +81,6 @@ function displayMatchHistory(matches) {
     });
 }
 
-// Helper functions
 function getModeText(mode) {
     switch (mode) {
         case 'VS':

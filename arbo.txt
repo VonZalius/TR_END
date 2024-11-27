@@ -1,0 +1,123 @@
+/
+└
+├
+─
+
+
+/site
+├─ /errors
+│  ├─ custom_404.html
+│  └─ custom_500.html
+├─ /media
+│  └─ /images
+│     ├─ 42_logo.png
+│     ├─ circle-up.png
+│     └─ logo.png
+├─ /profile_photos
+│  ├─ /default
+│  │  └─ default-user-profile-photo.jpg
+│  └─ /users
+├─ /static
+│  ├─ /css
+│  │  └─ styles.css
+│  ├─ /game
+│  │  ├─ /js
+│  │  │  ├─ /mods
+│  │  ├─ 
+│  │  │  │  ├─ lastManStanding.js
+│  │  │  │  ├─ tournament.js
+│  │  │  │  └─ versus.js 
+│  │  │  └─ /scenes
+│  │  │     └─ score.js 
+│  │  └─ games.js
+│  ├─ /html
+│  │  ├─ game.html
+│  │  ├─ login.html
+│  │  ├─ profile.html
+│  │  ├─ register.html
+│  │  └─ settingsGame.html
+│  ├─ /js
+│  │  ├─ game.js
+│  │  ├─ login.js
+│  │  ├─ profile.js
+│  │  ├─ register.js
+│  │  ├─ web3.min.js
+│  │  ├─ /commons
+│  │  │  ├─ common.js
+│  │  │  ├─ refresh.js
+│  │  │  ├─ userMenu.js
+│  │  │  └─ userMenuIndex.js
+│  │  ├─ /friends
+│  │  │  ├─ friendList.js
+│  │  │  └─ showAllUsers.js
+│  │  ├─ /games
+│  │  │  ├─ currUserHistory.js
+│  │  │  ├─ currUserStats.js
+│  │  │  ├─ matchmaking.js
+│  │  │  ├─ registerGame.js
+│  │  │  └─ verifUser.js
+│  │  ├─ /settingsGame
+│  │  │  ├─ addPlayerField.js
+│  │  │  ├─ keyBinds.js
+│  │  │  ├─ settingsGame.js
+│  │  │  └─ startGame.js
+│  └─ index.html
+
+
+/site
+├─ /errors
+│  ├─ custom_404.html
+│  └─ custom_500.html
+├─ /media
+│  └─ /images
+│     ├─ 42_logo.png
+│     ├─ circle-up.png
+│     └─ logo.png
+├─ /profile_photos
+│  ├─ /default
+│  │  └─ default-user-profile-photo.jpg
+│  └─ /users
+├─ /static
+│  ├─ /css
+│  │  └─ styles.css
+│  ├─ /game
+│  │  ├─ /js
+│  │  │  ├─ /mods
+│  │  │  │  ├─ lastManStanding.js
+│  │  │  │  ├─ tournament.js
+│  │  │  │  └─ versus.js 
+│  │  │  └─ /scenes
+│  │  │     └─ score.js 
+│  │  └─ games.js
+│  ├─ /html
+│  │  ├─ game.html
+│  │  ├─ login.html
+│  │  ├─ profile.html
+│  │  ├─ register.html
+│  │  └─ settingsGame.html
+│  ├─ /js
+│  │  ├─ game.js
+│  │  ├─ login.js
+│  │  ├─ profile.js
+│  │  ├─ register.js
+│  │  ├─ web3.min.js
+│  │  ├─ /commons
+│  │  │  ├─ common.js
+│  │  │  ├─ refresh.js
+│  │  │  ├─ userMenu.js
+│  │  │  └─ userMenuIndex.js
+│  │  ├─ /friends
+│  │  │  ├─ friendList.js
+│  │  │  └─ showAllUsers.js
+│  │  ├─ /games
+│  │  │  ├─ currUserHistory.js
+│  │  │  ├─ currUserStats.js
+│  │  │  ├─ matchmaking.js
+│  │  │  ├─ registerGame.js
+│  │  │  └─ verifUser.js
+│  │  ├─ /settingsGame
+│  │  │  ├─ addPlayerField.js
+│  │  │  ├─ keyBinds.js
+│  │  │  ├─ settingsGame.js
+│  │  │  └─ startGame.js
+│  └─ index.html

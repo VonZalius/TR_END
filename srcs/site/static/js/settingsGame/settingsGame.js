@@ -1,6 +1,6 @@
 import { addPlayerField } from './addPlayerField.js';
-
 import { initializeStartGame } from './startGame.js';
+import { clearUsedKeys } from './keyBinds.js';
 
 const MIN_PLAYERS = 2;
 const VERSUS_MAX = 4;
@@ -8,55 +8,121 @@ const TOURNAMENT_MAX = 10;
 const LASTMANSTANDING_MAX = 4;
 const BRICKBREAKER_MAX = 4;
 
-document.getElementById('mode').addEventListener('change', updateOptions);
-document.getElementById('addPlayer').addEventListener('click', addPlayer);
-document.getElementById('removePlayer').addEventListener('click', removePlayer);
+let existingUsernames = [];
 
-document.getElementById('maxScore').addEventListener('input', () => {
-    document.getElementById('maxScoreValue').textContent = document.getElementById('maxScore').value;
-});
-document.getElementById('paddleSpeed').addEventListener('input', () => {
-    document.getElementById('paddleSpeedValue').textContent = document.getElementById('paddleSpeed').value;
-});
-document.getElementById('paddleSize').addEventListener('input', () => {
-    document.getElementById('paddleSizeValue').textContent = document.getElementById('paddleSize').value;
-});
-document.getElementById('ballSpeed').addEventListener('input', () => {
-    document.getElementById('ballSpeedValue').textContent = document.getElementById('ballSpeed').value;
-});
-document.getElementById('ballAcceleration').addEventListener('input', () => {
-    document.getElementById('ballAccelerationValue').textContent = document.getElementById('ballAcceleration').value;
-});
-document.getElementById('numBalls').addEventListener('input', () => {
-    document.getElementById('numBallsValue').textContent = document.getElementById('numBalls').value;
-});
-document.getElementById('map').addEventListener('input', () => {
-    document.getElementById('mapValue').textContent = document.getElementById('map').value;
-});
+async function fetchExistingUsernames() {
+    try {
+        const response = await fetch("https://localhost:8000/api/user/show-all-users/");
+        if (response.ok) {
+            const users = await response.json();
+            existingUsernames = users.map(user => user.username.toLowerCase());
+        } else {
+            console.error('Failed to fetch existing usernames');
+        }
+    } catch (error) {
+        console.error('Error fetching usernames:', error);
+    }
+}
+
+function checkUsernameAvailability(inputField) {
+    const username = inputField.value.trim().toLowerCase();
+    const usernamePattern = /^[a-zA-Z0-9@#_.-]{8}$/;
+
+    let errorMessage = inputField.parentNode.querySelector('.invalid-feedback');
+    if (errorMessage) {
+        errorMessage.remove();
+    }
+
+    const nameExistsMessage = "Name already exists, try to connect!";
+    const invalidFormatMessage = "Username must be exactly 8 alphanumeric characters or special characters - _ @ .";
+
+    if (!usernamePattern.test(username)) {
+        displayError(inputField, invalidFormatMessage);
+    } else if (existingUsernames.includes(username) || isUsernameAlreadyUsedInGame(username, inputField)) {
+        displayError(inputField, nameExistsMessage);
+    } else {
+        inputField.classList.remove('is-invalid');
+    }
+}
+
+function displayError(inputField, message) {
+    const errorMessage = document.createElement('div');
+    errorMessage.classList.add('invalid-feedback', 'text-danger');
+    errorMessage.textContent = message;
+    inputField.classList.add('is-invalid');
+    inputField.parentNode.appendChild(errorMessage);
+}
+
+function isUsernameAlreadyUsedInGame(username, currentInputField) {
+    const playerInputFields = document.querySelectorAll('.player-control input[type="text"]');
+    return Array.from(playerInputFields).some(field =>
+        field !== currentInputField && field.value.trim().toLowerCase() === username
+    );
+}
+
+export async function initSettingsGame() {
+    await fetchExistingUsernames();
+
+    document.getElementById('mode').addEventListener('change', updateOptions);
+    document.getElementById('addPlayer').addEventListener('click', addPlayer);
+    document.getElementById('removePlayer').addEventListener('click', removePlayer);
+    document.getElementById('defaultSetting').addEventListener('click', resetToDefault);
+
+    document.getElementById('player-controls-wrapper').addEventListener('input', event => {
+        if (event.target && event.target.matches('.player-control input[type="text"]')) {
+            checkUsernameAvailability(event.target);
+        }
+    });
+
+    initializeRangeDisplays();
+    updateOptions();
+    initializeStartGame();
+}
+
+function initializeRangeDisplays() {
+    const rangeSettings = [
+        { id: 'maxScore', displayId: 'maxScoreValue' },
+        { id: 'paddleSpeed', displayId: 'paddleSpeedValue' },
+        { id: 'paddleSize', displayId: 'paddleSizeValue' },
+        { id: 'ballSpeed', displayId: 'ballSpeedValue' },
+        { id: 'ballAcceleration', displayId: 'ballAccelerationValue' },
+        { id: 'numBalls', displayId: 'numBallsValue' },
+        { id: 'map', displayId: 'mapValue' },
+    ];
+
+    rangeSettings.forEach(({ id, displayId }) => {
+        const rangeInput = document.getElementById(id);
+        const display = document.getElementById(displayId);
+
+        rangeInput.addEventListener('input', () => {
+            display.textContent = rangeInput.value;
+        });
+
+        display.textContent = rangeInput.value;
+    });
+}
 
 function updateOptions() {
     const mode = document.getElementById('mode').value;
     const maxScoreField = document.getElementById('maxScore');
+
     document.getElementById('player-controls-wrapper').innerHTML = ''; 
     document.getElementById('player-key-wrapper').innerHTML = ''; 
 
-    let initialPlayers = MIN_PLAYERS;
-    let maxPlayers = getMaxPlayersForMode(mode);
+    clearUsedKeys();
 
-    if (mode === 'brickBreaker') {
-        maxScoreField.disabled = true;
-        document.getElementById('maxScoreValue').textContent = 'N/A'; 
-    } else {
-        maxScoreField.disabled = false;
-        document.getElementById('maxScoreValue').textContent = maxScoreField.value;
-    }
+    const initialPlayers = MIN_PLAYERS;
+    const maxPlayers = getMaxPlayersForMode(mode);
 
-    for (let i = 0; i < 2; i++) {
+    maxScoreField.disabled = (mode === 'brickBreaker');
+    document.getElementById('maxScoreValue').textContent = maxScoreField.disabled ? 'N/A' : maxScoreField.value;
+
+    for (let i = 0; i < initialPlayers; i++) {
         addPlayerField(i);
     }
 
-    updateAddPlayerButton();
-    updateRemovePlayerButton();
+    updateAddPlayerButton(maxPlayers);
+    updateRemovePlayerButton(initialPlayers);
 }
 
 function getPlayersToAddOrRemove(mode) {
@@ -70,28 +136,25 @@ function addPlayer() {
 
     let toAdd = getPlayersToAddOrRemove(mode);
     const currentPlayers = playerFields.length;
-    
+
     for (let i = 0; i < toAdd; i++) {
         if (currentPlayers + i < maxPlayers) {
-            if (currentPlayers + i >= 2 && mode === 'tournament') {
-                addPlayerField(currentPlayers + i, true);
-            } else {
-                addPlayerField(currentPlayers + i);
-            }
+            addPlayerField(currentPlayers + i, mode === 'tournament');
         }
     }
 
-    updateAddPlayerButton();
-    updateRemovePlayerButton();
+    updateAddPlayerButton(maxPlayers);
+    updateRemovePlayerButton(currentPlayers + toAdd);
 }
 
 function removePlayer() {
     const mode = document.getElementById('mode').value;
     const column1 = document.getElementById('column1');
     const column2 = document.getElementById('column2');
-    const playerContainersCol1 = column1.getElementsByClassName('player-container');
-    const playerContainersCol2 = column2.getElementsByClassName('player-container');
-    
+
+    const playerContainersCol1 = column1?.getElementsByClassName('player-container') || [];
+    const playerContainersCol2 = column2?.getElementsByClassName('player-container') || [];
+
     let toRemove = getPlayersToAddOrRemove(mode);
 
     for (let i = 0; i < toRemove; i++) {
@@ -104,29 +167,18 @@ function removePlayer() {
         }
     }
 
-    updateAddPlayerButton();
-    updateRemovePlayerButton();
+    updateRemovePlayerButton(playerContainersCol1.length + playerContainersCol2.length - toRemove);
 }
 
-function updateAddPlayerButton() {
-    const mode = document.getElementById('mode').value;
-    const maxPlayers = getMaxPlayersForMode(mode);
+function updateAddPlayerButton(maxPlayers) {
     const playerFields = document.getElementsByClassName('player-control');
-
-    if (playerFields.length >= maxPlayers) {
-        document.getElementById('addPlayer').style.display = 'none';
-    } else {
-        document.getElementById('addPlayer').style.display = 'inline';
-    }
+    const addPlayerButton = document.getElementById('addPlayer');
+    addPlayerButton.style.display = playerFields.length >= maxPlayers ? 'none' : 'inline';
 }
 
-function updateRemovePlayerButton() {
-    const playerFields = document.getElementsByClassName('player-control');
-    if (playerFields.length <= MIN_PLAYERS) {
-        document.getElementById('removePlayer').style.display = 'none';
-    } else {
-        document.getElementById('removePlayer').style.display = 'inline';
-    }
+function updateRemovePlayerButton(currentPlayers) {
+    const removePlayerButton = document.getElementById('removePlayer');
+    removePlayerButton.style.display = currentPlayers <= MIN_PLAYERS ? 'none' : 'inline';
 }
 
 function getMaxPlayersForMode(mode) {
@@ -143,47 +195,15 @@ function getMaxPlayersForMode(mode) {
     }
 }
 
-updateOptions();
-initializeStartGame();
-
 function resetToDefault() {
     document.getElementById('maxScore').value = 10;
-    document.getElementById('maxScoreValue').textContent = 10;
-
     document.getElementById('paddleSpeed').value = 5;
-    document.getElementById('paddleSpeedValue').textContent = 5;
-
     document.getElementById('paddleSize').value = 100;
-    document.getElementById('paddleSizeValue').textContent = 100;
-
     document.getElementById('bounceMode').checked = true;
-
     document.getElementById('ballSpeed').value = 5;
-    document.getElementById('ballSpeedValue').textContent = 5;
-
     document.getElementById('ballAcceleration').value = 1;
-    document.getElementById('ballAccelerationValue').textContent = 1;
-
     document.getElementById('numBalls').value = 1;
-    document.getElementById('numBallsValue').textContent = 1;
-
     document.getElementById('map').value = 1;
-    document.getElementById('mapValue').textContent = 1;
+
+    initializeRangeDisplays();
 }
-
-// Mettre le focus sur le champ email lorsque la fenêtre de connexion s'ouvre
-const loginModal = document.getElementById('loginModal');
-loginModal.addEventListener('shown.bs.modal', () => {
-    document.getElementById('loginEmail').focus();
-});
-
-document.getElementById('defaultSetting').addEventListener('click', resetToDefault);
-
-document.addEventListener('DOMContentLoaded', () => {
-    const accessToken = localStorage.getItem('accessToken');
-    const matchmakingSection = document.getElementById('matchmakingSection');
-
-    if (!accessToken && matchmakingSection) {
-        matchmakingSection.style.display = 'none';
-    }
-});

@@ -6,14 +6,10 @@
 
 set -e # Exit immediately if a command exits with a non-zero status.
 
-# If the data directory doesn't exist, then initialize the database
-# -z string: True if the length of string is zero.
-# Then start the database
+# Si le répertoire de données n'existe toujours pas, initialiser la base de données
 if [ ! -d "$PGDATA" ] ; then
 
-echo "Initializing the database"
-
-  # Take the values from the secret files
+  # Récupérer les valeurs des fichiers de secrets
   POSTGRES_USER="$(cat "$POSTGRES_USER_FILE")"
   POSTGRES_PASSWORD="$(cat "$POSTGRES_PASSWORD_FILE")"
   POSTGRES_DB="$(cat "$POSTGRES_DB_NAME_FILE")"
@@ -21,74 +17,75 @@ echo "Initializing the database"
   PGPASSWORD="$(cat "$PG_SUPERUSER_PASS")"
   export PGPASSWORD
 
+  # pour le débogage
   if [ $LOG_LEVEL = "DEBUG" ]; then
-    # for debugging
     echo "POSTGRES_USER: $POSTGRES_USER"
     echo "POSTGRES_PASSWORD: $POSTGRES_PASSWORD"
     echo "POSTGRES_DB: $POSTGRES_DB"
     echo "PG SUPERUSER PASSWORD: $PGPASSWORD"
   fi
 
-  # initdb creates a new PostgreSQL database cluster.
-  # --pwfile=filename: initdb read the database superuser's password from a file.
+  echo "Initializing the database"
+
+  # initdb crée un nouveau cluster de base de données PostgreSQL.
   initdb --auth-local=scram-sha-256 --auth-host=scram-sha-256 -D "$PGDATA" --pwfile=/run/secrets/pg_superuser_pass
 
-  # get auth container ip address
+  # obtenir l'adresse IP du conteneur auth
   DJANGO_CONTAINER_IP=$(getent hosts auth | awk '{ print $1 }')
+
+  echo "Getting container IP address"
 
   if [ $LOG_LEVEL = "DEBUG" ]; then
     echo "auth ip address is : $DJANGO_CONTAINER_IP"
   fi
 
-  # Add auth container ip adress to  pg_hba.conf
+  # Ajouter l'adresse IP du conteneur auth au fichier pg_hba.conf
   echo "host    all             all             $DJANGO_CONTAINER_IP/32           scram-sha-256" >> "$PGDATA"/pg_hba.conf
 
-  # pg_ctl is a utility for initializing, starting, stopping, or restarting a PostgreSQL instance.
-  # -D for data directory: the directory where the database cluster will be stored
-  # If this option (-D) is omitted, the environment variable PGDATA is used.
-  # -l logfile: write (or append) server log output to the specified file
-  # -w for wait: Wait for the operation to complete (e.g., startup, shutdown, or restart) before returning.
-  # -start mode launches a new server in the background
+  echo "Container IP address is set in pg_hba.conf"
+
+  echo "Starting PostgreSQL instance"
+
+  # pg_ctl est une utilité pour initialiser, démarrer, arrêter ou redémarrer une instance PostgreSQL.
   pg_ctl -D "$PGDATA" -l /etc/postgresql/logfile -w start
 
-  # Create a user with password
-  # -U for user: connect the database to a user
-  # -c for command: execute the given command string
+  echo "Creating PostgreSQL role with password" 
+
+  # Créer un utilisateur avec mot de passe
   psql -U postgres -c "
       CREATE ROLE $POSTGRES_USER
       WITH LOGIN PASSWORD '$POSTGRES_PASSWORD';
   "
 
-  # source :  https://docs.djangoproject.com/en/5.1/ref/databases/#optimizing-postgresql-s-configuration
-  # Django current settings: USE_TZ = True and TIME_ZONE = 'Europe/Zurich'
-  # Django needs the following parameters for its database connections
-  # You can configure them directly in postgresql.conf or more conveniently per database user with ALTER ROLE.
-  # I did both
+  echo "PostgreSQL parametrizing for Django"
+
+  # Paramètres spécifiques pour Django
   psql -U postgres -c "ALTER ROLE $POSTGRES_USER SET client_encoding TO 'UTF8';"
   psql -U postgres -c "ALTER ROLE $POSTGRES_USER SET default_transaction_isolation TO 'read committed';"
   psql -U postgres -c "ALTER ROLE $POSTGRES_USER SET timezone TO 'Europe/Zurich';"
 
-  # Create a database with owner
+  echo "Creating a database"
+
+  # Créer une base de données avec le propriétaire spécifié
   psql -U postgres -c "
       CREATE DATABASE $POSTGRES_DB
       OWNER $POSTGRES_USER;
   "
 
-  # change the password to match POSTGRES_USER (pong)
+  # changement du mot de passe pour qu'il corresponde à POSTGRES_USER (pong)
   PGPASSWORD="$(cat "$POSTGRES_PASSWORD_FILE")"
   export PGPASSWORD
 
+  echo "Shutting down PostgreSQL to take changes"
 
-  # Connect to database $POSTGRES_DB with user $POSTGRES_USER and execute an sql script from a file
-  # -d for database name: connect to the database with this name
-  # -f for file: read and execute commands from the file
-  # psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /etc/postgresql/sql_scripts/init_tables.sql
-
-  # -m Specifies the shutdown mode. Fast is recommended for normal shutdowns.
+  # Arrêter PostgreSQL pour appliquer les changements
   pg_ctl -D "$PGDATA" -m fast -w stop
 
 fi
 
 unset PGPASSWORD
 
+echo "Running PostgreSQL in foreground mode"
+
+# Exécuter PostgreSQL en mode premier-plan
 exec postgres -D "$PGDATA" -c config_file=/etc/postgresql/postgresql.conf

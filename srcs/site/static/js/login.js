@@ -1,52 +1,85 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('loginForm');
+import { showMessage } from './commons/common.js';
+import { refreshComponent } from './commons/componentManager.js';
 
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault();
+export function initLoginForm() {
+	const form = document.getElementById('loginForm');
+	const emailField = document.getElementById('email');
+	const passwordField = document.getElementById('password');
 
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
+	const messages = {
+		connectionFailed: (errorMessage) => `Connection failed: ${errorMessage}`,
+		noTokens: 'Connection failed: no tokens received.',
+		retryError: 'An error occurred during connection. Please try again.',
+		invalidEmail: 'Invalid email address.',
+		successMessage: 'Login successful!',
+	};
 
-        try {
-            const response = await fetch('https://localhost:8000/api/user/login/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                mode: 'cors',
-                body: JSON.stringify(data),
-            });
+	function showFieldError(field, message) {
+		clearFieldError(field);
+		const errorElement = document.createElement('div');
+		errorElement.classList.add('invalid-feedback', 'd-block');
+		errorElement.textContent = message;
+		field.classList.add('is-invalid');
+		field.parentNode.appendChild(errorElement);
+	}
 
-            if (!response.ok) {
-                let errorMessage = 'Erreur lors de la connexion.';
-                
-                try {
-                    // Tenter de parser la réponse en JSON pour obtenir le message d'erreur
-                    const errorData = await response.json();
-                    errorMessage = errorData.detail || errorMessage;  // Extraire "detail" s'il est présent
-                } catch (jsonError) {
-                    // En cas d'échec de parsing, utiliser le texte brut
-                    errorMessage = await response.text();
-                }
+	function clearFieldError(field) {
+		field.classList.remove('is-invalid');
+		const errorElement = field.parentNode.querySelector('.invalid-feedback');
+		if (errorElement) {
+			errorElement.remove();
+		}
+	}
 
-                showMessage(`Échec de la connexion : ${errorMessage}`, 'danger');
-                return;
-            }
+	form.addEventListener('submit', async (event) => {
+		event.preventDefault();
 
-            const result = await response.json();
-            const accessToken = result.access;
-            const refreshToken = result.refresh;
+		clearFieldError(emailField);
+		clearFieldError(passwordField);
 
-            if (accessToken && refreshToken) {
-                localStorage.setItem('accessToken', accessToken);
-                localStorage.setItem('refreshToken', refreshToken);
-                localStorage.setItem('successMessage', 'Connexion réussie !');
-                window.location.href = 'profile.html';
-            } else {
-                showMessage('Échec de la connexion : aucun token reçu.', 'warning');
-            }
-        } catch (error) {
-            showMessage("Une erreur s'est produite lors de la connexion. Veuillez réessayer.", 'danger');
-        }
-    });
-});
+		const formData = new FormData(form);
+		const data = Object.fromEntries(formData.entries());
+
+		try {
+			const response = await fetch('https://localhost:8000/api/user/login/', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				mode: 'cors',
+				body: JSON.stringify(data),
+			});
+
+			if (!response.ok) {
+				let errorMessage = 'Error connecting.';
+				try {
+					const errorData = await response.json();
+
+					if (errorData.email) {
+						showFieldError(emailField, errorData.email[0] || messages.invalidEmail);
+					} else if (errorData.detail) {
+						errorMessage = errorData.detail;
+					}
+				} catch (jsonError) {
+					errorMessage = await response.text();
+				}
+
+				showMessage(messages.connectionFailed(errorMessage), 'danger');
+				return;
+			}
+
+			const result = await response.json();
+			const { access: accessToken, refresh: refreshToken } = result;
+
+			if (accessToken && refreshToken) {
+				localStorage.setItem('accessToken', accessToken);
+				localStorage.setItem('refreshToken', refreshToken);
+				localStorage.setItem('successMessage', messages.successMessage);
+				refreshComponent('navbar');
+				window.location.href = '#/profile';
+			} else {
+				showMessage(messages.noTokens, 'warning');
+			}
+		} catch (error) {
+			showMessage(messages.retryError, 'danger');
+		}
+	});
+}

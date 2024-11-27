@@ -1,6 +1,4 @@
-document.addEventListener('DOMContentLoaded', fetchUserStats);
-
-async function fetchUserStats() {
+export async function fetchUserStats() {
     const accessToken = localStorage.getItem('accessToken');
     const statsContainer = document.getElementById('statsContainer');
     const totalPlayedElement = document.getElementById('totalPlayed');
@@ -8,7 +6,7 @@ async function fetchUserStats() {
     const modeStatsTable = document.getElementById('modeStatsTable');
 
     if (!accessToken) {
-        statsContainer.innerHTML = '<p class="text-danger">Vous devez être connecté pour voir vos statistiques.</p>';
+        statsContainer.innerHTML = '<p class="text-danger">You must be logged in to see your statistics.</p>';
         return;
     }
 
@@ -24,16 +22,13 @@ async function fetchUserStats() {
         if (response.ok) {
             const stats = await response.json();
 
-            // Calcul du pourcentage de victoires
             const totalWins = stats.total_wins;
             const totalPlayed = stats.total_played;
             const winPercentage = totalPlayed ? Math.floor((totalWins / totalPlayed) * 100) : 0;
 
-            // Affichage des statistiques globales
             totalPlayedElement.textContent = totalPlayed;
             winPercentageElement.textContent = winPercentage;
 
-            // Insertion des statistiques par mode dans le tableau
             const modes = ['VS', 'TN', 'LS', 'BB'];
             modeStatsTable.innerHTML = modes.map(mode => {
                 const played = stats[`${mode}_played`] || 0;
@@ -48,11 +43,11 @@ async function fetchUserStats() {
                 `;
             }).join('');
         } else {
-            statsContainer.innerHTML = '<p class="text-danger">Impossible de récupérer les statistiques.</p>';
+            statsContainer.innerHTML = '<p class="text-danger">Unable to retrieve statistics.</p>';
         }
     } catch (error) {
-        console.error('Erreur lors de la récupération des statistiques :', error);
-        statsContainer.innerHTML = '<p class="text-danger">Erreur lors de la récupération des statistiques.</p>';
+        console.error('Error retrieving statistics :', error);
+        statsContainer.innerHTML = '<p class="text-danger">Error retrieving statistics.</p>';
     }
 }
 

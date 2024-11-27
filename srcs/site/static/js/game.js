@@ -1,21 +1,17 @@
 import { main } from '../game/games.js';
 
-document.addEventListener("DOMContentLoaded", () => {
-    // Charger les options de jeu depuis localStorage
+export function initializeGame() {
     const gameOptions = JSON.parse(localStorage.getItem('gameOptions'));
     let gameSession = JSON.parse(localStorage.getItem('gameSession'));
 
-    // Si une session de jeu existe déjà, mettre à jour la date de début pour refléter l'actualisation de la page
     if (gameSession) {
-        gameSession.start_date = new Date().toLocaleString();
+        gameSession.start_date = formatDateToStandard(new Date());
         localStorage.setItem('gameSession', JSON.stringify(gameSession));
     }
 
-    // Vérifier si les options existent avant de lancer le jeu
     if (gameOptions) {
         const { mode, playerNames, playerKeys, maxScore, paddleSpeed, paddleSize, bounceMode, ballSpeed, ballAcceleration, numBalls, map } = gameOptions;
 
-        // Récupérer la langue du footer
         const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en';
         let languageIndex = 0;
 
@@ -26,47 +22,70 @@ document.addEventListener("DOMContentLoaded", () => {
             case 'es':
                 languageIndex = 2;
                 break;
-                case 'bg':
+            case 'bg':
                 languageIndex = 3;
                 break;
             default:
                 languageIndex = 0;
         }
 
-        // Appeler la fonction main avec les options de jeu et les touches des joueurs
         main(
-            mode,                           // Mode de jeu
-            playerNames,                    // Noms des joueurs (déjà un tableau)
-            playerKeys,                     // Touches des joueurs (tableau)
-            parseInt(maxScore),             // Score maximum
-            parseInt(paddleSpeed),          // Vitesse des paddles
-            parseInt(paddleSize),           // Taille des paddles
-            bounceMode,                     // Mode rebond
-            parseInt(ballSpeed),            // Vitesse de la balle
-            parseInt(ballAcceleration),     // Accélération de la balle
-            parseInt(numBalls),             // Nombre de balles
-            parseInt(map),                  // Carte
-            languageIndex                   // Indice de la langue
+            mode,
+            playerNames,
+            playerKeys,
+            parseInt(maxScore),
+            parseInt(paddleSpeed),
+            parseInt(paddleSize),
+            bounceMode,
+            parseInt(ballSpeed),
+            parseInt(ballAcceleration),
+            parseInt(numBalls),
+            parseInt(map),
+            languageIndex
         );
     } else {
         alert("No game options found!");
-		window.location.href = './settingsGame.html';
+        window.location.hash = '#/settingsGame';
     }
-});
 
-// Gestion du clic sur le bouton "Back to Menu"
-document.getElementById('backButton').addEventListener('click', () => {
-    window.location.href = '../index.html';
-});
+    const backButton = document.getElementById('backButton');
+    const settingsButton = document.getElementById('settingsButton');
 
-document.addEventListener('keydown', function(event) {
-    // Empêche uniquement le défilement de la page lorsque les touches fléchées sont pressées
-    const keysToPrevent = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
-    const canvas = document.getElementById('webgl1'); // On cible le canvas du jeu
-
-    if (keysToPrevent.includes(event.key) && document.activeElement !== canvas) {
-        // Si le focus n'est pas sur le canvas, on empêche le défilement
-        event.preventDefault();
+    if (backButton) {
+        backButton.addEventListener('click', () => {
+            window.location.hash = '#/';
+        });
+    } else {
+        console.error('Back button not found.');
     }
-});
+
+    if (settingsButton) {
+        settingsButton.addEventListener('click', () => {
+            window.location.hash = '#/settingsGame';
+        });
+    } else {
+        console.error('Settings button not found.');
+    }
+
+    document.addEventListener('keydown', function (event) {
+        const keysToPrevent = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
+        const canvas = document.getElementById('webgl1');
+
+        if (keysToPrevent.includes(event.key) && document.activeElement !== canvas) {
+            event.preventDefault();
+        }
+    });
+}
+
+function formatDateToStandard(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+}
 

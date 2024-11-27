@@ -35,17 +35,17 @@ export class Versus {
 
         this.score = new Score(langue, ctx, font, this.gameArea, team1Names, team2Names);
 
+        this.gameTitle = "Versus Mode";
         if (langue == 0) {
-            this.gameTitle = "Versus Mode";
             this.gameSubtitle = "First to ";
         } else if (langue == 1) {
-            this.gameTitle = "Mode Face-à-face";
+            //this.gameTitle = "Mode Face-à-face";
             this.gameSubtitle = "Premier à ";
         } else if (langue == 2) {
-            this.gameTitle = "Modo Versus";
+            //this.gameTitle = "Modo Versus";
             this.gameSubtitle = "Primero a ";
         } else if (langue == 3) {
-            this.gameTitle = "Режим Срещу";
+            //this.gameTitle = "Режим Срещу";
             this.gameSubtitle = "Първи до ";
         }
         

@@ -1,14 +1,14 @@
 # Variables
-COMPOSE_FILE := ./srcs/docker-compose.yml
+COMPOSE_FILE := ./docker-compose.yml
 
 GREEN := \033[0;32m
 NC := \033[0m
 
 UNAME_S := $(shell uname -s)
-POSTGRES_DIR := /Users/Shared/postgres
+POSTGRES_DIR := ./postgres
 SITE_DIR := ./srcs/site
 USERNAME := $$(whoami)
-GROUPNAME = $$(whoami)
+GROUPNAME = staff
 
 ifeq (${UNAME_S}, "Darwin")
 	GROUPNAME = staff
@@ -17,17 +17,21 @@ endif
 create-directories:
 	@if [ ! -d "${POSTGRES_DIR}/data" ]; then \
 		echo "${GREEN}\nCREATING DIRECTORY \"${POSTGRES_DIR}/data\" FOR DATABASE ${NC}"; \
-		sudo mkdir -p ${POSTGRES_DIR}/data; \
+		mkdir -p ${POSTGRES_DIR}/data; \
+	fi
+	@if [ ! -d "./ganache/data" ]; then \
+	echo "${GREEN}\nCREATING DIRECTORY \"./ganache/data\" FOR GANACHE ${NC}"; \
+	mkdir -p ./ganache/data; \
 	fi
 
 set-permissions:
 	@echo "${GREEN}\nSETTING PERMISSIONS FOR \"${POSTGRES_DIR}/data\" DATA DIRECTORY ${NC}"
 	@if [ ${UNAME_S} = "Darwin" ]; then \
-		sudo chown -R ${USERNAME}:${GROUPENAME} ${POSTGRES_DIR}/; \
+		chown -R ${USERNAME}:${GROUPNAME} ${POSTGRES_DIR}/; \
 	elif [ ${UNAME_S} = "Linux" ]; then \
-		sudo chown -R 102:104 ${POSTGRES_DIR}/; \
+		chown -R 102:104 ${POSTGRES_DIR}/; \
 	fi
-	@sudo chmod -R 775 ${POSTGRES_DIR}/
+	@chmod -R 775 ${POSTGRES_DIR}/
 
 dangling-images:
 	@echo "${GREEN}\nCLEANING DANGLING IMAGES ${NC}"
@@ -42,7 +46,6 @@ dangling-volumes:
 	-@docker volume prune -f > /dev/null 2>&1
 
 dangling: dangling-images dangling-networks dangling-volumes
-
 # Target to start all services
 up:
 	@echo "${GREEN}\nBUILDING IMAGES, (RE)CREATING, STARTING AND ATTACHING CONTAINERS FOR SERVICES ${NC}"
@@ -58,24 +61,31 @@ down:
 # Target to stop and remove containers, networks, images, and volumes
 down-rmi:
 	@echo "${GREEN}\nSTOPPING CONTAINERS AND REMOVING CONTAINERS, NETWORKS, IMAGES, AND VOLUMES USED BY SERVICES ${NC}"
-	@docker-compose -f $(COMPOSE_FILE) down --rmi all --volumes
+	@docker-compose -f $(COMPOSE_FILE) down --rmi all --volumes --remove-orphans
+	@docker volume rm postgres_data || true  # <-- Forcer la suppression du volume
+	@docker system prune --volumes -f
 
 clean: down
+	@echo "${GREEN}\nSUPPRIMANT LE DOSSIER BUILD DE TRUFFLE ${NC}"
 
 # Target to remove all resources and data
 fclean: down-rmi
 	@$(MAKE) dangling
+	@echo "${GREEN}\nSUPPRIMANT LE DOSSIER BUILD DE TRUFFLE ${NC}"
+	rm -rf ./srcs/requirements/truffle/build
+	rm -rf ./ganache
 	@if [ -d "${POSTGRES_DIR}/" ]; then \
-  		echo "${GREEN}\nREMOVING SAVED DATA IN HOST MACHINE ${NC}"; \
-  		sudo chown -R ${USERNAME}:${GROUPENAME} ${POSTGRES_DIR}/; \
-  		sudo chmod -R 775 ${POSTGRES_DIR}/; \
-  		rm -rf ${POSTGRES_DIR}/*; \
-  		if [ ${UNAME_S} = "Darwin" ]; then \
-  			rmdir ${POSTGRES_DIR}; \
+			echo "${GREEN}\nREMOVING SAVED DATA IN HOST MACHINE ${NC}"; \
+			chown -R ${USERNAME}:${GROUPNAME} ${POSTGRES_DIR}/; \
+			chmod -R 775 ${POSTGRES_DIR}/; \
+			rm -rf ${POSTGRES_DIR}/*; \
+		rm -rf ${POSTGRES_DIR}/.[!.]*; \
+			if [ ${UNAME_S} = "Darwin" ]; then \
+				rmdir ${POSTGRES_DIR}; \
 		fi; \
 	fi
 	@echo "${GREEN}\nCHANGING PERMISSIONS FOR "site/media",  "site/static" AND "/site/profile_photos" to ${USERNAME}:${GROUPNAME} ${NC}";
-	@sudo chown -R ${USERNAME}:${GROUPENAME} ${SITE_DIR}/
+	@chown -R ${USERNAME}:${GROUPNAME} ${SITE_DIR}/
 	@echo "${GREEN}\nREMOVING IMAGES IN srcs/site/profile_photos ${NC}";
 	rm -rf ${SITE_DIR}/profile_photos/users/*
 

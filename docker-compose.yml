@@ -1,6 +1,6 @@
 services:
   postgres:
-    build: ./requirements/postgres
+    build: ./srcs/requirements/postgres
     image: postgres:custom
     container_name: postgres
     expose:
@@ -8,7 +8,7 @@ services:
     networks:
       - pong_network
     env_file:
-      - .env
+      - ./srcs/.env
     secrets:
       - pgdb
       - pguser
@@ -19,7 +19,7 @@ services:
     restart: always
 
   auth:
-    build: ./requirements/auth
+    build: ./srcs/requirements/auth
     image: auth:custom
     container_name: auth
     ports:
@@ -27,7 +27,7 @@ services:
     networks:
       - pong_network
     env_file:
-      - .env
+      - ./srcs/.env
     secrets:
       - auth_secret_key
       - pgdb
@@ -41,11 +41,11 @@ services:
     depends_on:
       - postgres
     volumes:
-      - profile_photos:/usr/src/app/media/profile_photos
+    - profile_photos:/usr/src/app/media/profile_photos
     restart: always
 
   nginx:
-    build: ./requirements/nginx
+    build: ./srcs/requirements/nginx
     image: nginx:custom
     container_name: nginx
     ports:
@@ -54,18 +54,22 @@ services:
     networks:
       - pong_network
     env_file:
-      - .env
+      - ./srcs/.env
     depends_on:
       - auth
+      - ganache
+    links:
+      - ganache
     volumes:
       - static_files:/var/www/html/static
       - media_files:/var/www/html/media
       - profile_photos:/var/www/html/profile_photos
       - errors:/var/www/html/errors
+      - ./srcs/requirements/truffle/build/contracts:/var/www/html/contracts
     restart: always
 
   cron:
-    build: ./requirements/cron
+    build: ./srcs/requirements/cron
     image: cron:custom
     container_name: cron
     networks:
@@ -74,68 +78,95 @@ services:
       - auth
     restart: always
 
+  ganache:
+    build: ./srcs/requirements/ganache
+    container_name: ganache
+    ports:
+      - "8545:8545"
+    networks:
+      - pong_network
+    volumes:
+      - ganache_data:/data
+    restart: always
+
+  truffle:
+    build: ./srcs/requirements/truffle
+    container_name: truffle
+    depends_on:
+      - ganache
+    networks:
+      - pong_network
+    volumes:
+      - ./srcs/requirements/truffle:/app
+    working_dir: /app
+    command: ["sh", "-c", "deploy-if-needed.sh"]
+    restart: on-failure
+
 networks:
   pong_network:
     name: pong
 
 volumes:
   postgres_data:
-    name: postgres_data
     driver: local
     driver_opts:
-      type: nfs
-      device: /Users/Shared/postgres/data/
+      type: none
+      device: ./postgres/data
+      o: bind
+  ganache_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./ganache/data
       o: bind
   static_files:
     name: static_files
     driver: local
     driver_opts:
       type: none
-      device: /home/abarrass/Desktop/v130/srcs/site/static  # Updated path
+      device: ./srcs/site/static
       o: bind
   media_files:
     name: media_files
     driver: local
     driver_opts:
       type: none
-      device: /home/abarrass/Desktop/v130/srcs/site/media  # Updated path
+      device: ./srcs/site/media
       o: bind
   profile_photos:
     name: profile_photos
     driver: local
     driver_opts:
       type: none
-      device: /home/abarrass/Desktop/v130/srcs/site/profile_photos  # Updated path
+      device: ./srcs/site/profile_photos
       o: bind
   errors:
     name: errors
     driver: local
     driver_opts:
       type: none
-      device: /home/abarrass/Desktop/v130/srcs/site/errors  # Updated path
+      device: ./srcs/site/errors
       o: bind
-
 
 
 secrets:
   auth_secret_key:
-    file: ./secrets/auth_secret_key.txt
+    file: ./srcs/secrets/auth_secret_key.txt
   pgdb:
-    file: ./secrets/pgdb.txt
+    file: ./srcs/secrets/pgdb.txt
   pguser:
-    file: ./secrets/pguser.txt
+    file: ./srcs/secrets/pguser.txt
   pgpass:
-    file: ./secrets/pgpass.txt
+    file: ./srcs/secrets/pgpass.txt
   pg_superuser_pass:
-    file: ./secrets/pgsuperuser_pass.txt
+    file: ./srcs/secrets/pgsuperuser_pass.txt
   django_superuser_password:
-    file: ./secrets/django_superuser_password.txt
+    file: ./srcs/secrets/django_superuser_password.txt
   django_superuser_email:
-    file: ./secrets/django_superuser_email.txt
+    file: ./srcs/secrets/django_superuser_email.txt
   django_superuser_username:
-    file: ./secrets/django_superuser_username.txt
+    file: ./srcs/secrets/django_superuser_username.txt
   django_superuser_first_name:
-    file: ./secrets/django_superuser_first_name.txt
+    file: ./srcs/secrets/django_superuser_first_name.txt
   django_superuser_last_name:
-    file: ./secrets/django_superuser_last_name.txt
-
+    file: ./srcs/secrets/django_superuser_last_name.txt

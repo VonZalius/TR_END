@@ -174,3 +174,14 @@
     object-fit: cover;
     object-position: center;
 }
+
+@media (max-width: 768px) {
+    .row.mb-2 .col-12 {
+        display: flex;
+        flex-direction: column;
+    }
+    .col-12.fw-bold.fs-5,
+    .col-12.fs-5 {
+        margin-top: 0.25rem;
+    }
+}

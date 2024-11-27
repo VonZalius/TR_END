@@ -1,13 +1,11 @@
 import logging
-from django.core.management.commands.loaddata import humanize
-from django.core.serializers import get_serializer
-from django.db.models.expressions import result
+import uuid
+import jwt
+from django.conf import settings
 from rest_framework.views import APIView
-from rest_framework_simplejwt.views import TokenBlacklistView
 from rest_framework import (
     generics,
     status,
-    request
 )
 from .serializers import (
     RegisterSerializer,
@@ -21,7 +19,6 @@ from .serializers import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.contrib.auth.password_validation import password_changed
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
 from friends_app.models import FriendRequest
@@ -77,6 +74,17 @@ class MyCustomTokenBlackListView(APIView):
         # Get the user from the request and set the is_online field to False, then save the user
         try:
             current_user = request.user
+
+            # Decode the refresh token to get the user_id using the SECRET_KEY
+            decoded_token = jwt.decode(refresh_token, settings.SECRET_KEY , algorithms=["HS256"])
+
+            # Get the user_id from the decoded token
+            token_user_id = decoded_token['user_id']
+
+            # comparison of UUIDs: compare if the request user trying to logout is the same as the user_id in the token
+            if current_user.id != uuid.UUID(token_user_id):
+                return Response({"detail": "Forbidden user."}, status=status.HTTP_403_FORBIDDEN)
+
             current_user.is_online = False
             current_user.save()
         except Exception as e:

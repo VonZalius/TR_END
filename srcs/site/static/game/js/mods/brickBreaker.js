@@ -38,17 +38,17 @@ export class BrickBreaker {
 
         this.score = new Score(langue, ctx, font, this.gameArea, team1Names, team2Names);
 
+        this.gameTitle = "Brick Breaker Mode";
         if (langue == 0) {
-            this.gameTitle = "Brick Breaker Mode";
             this.gameSubtitle = "First to ";
         } else if (langue == 1) {
-            this.gameTitle = "Mode Casse-briques";
+            //this.gameTitle = "Mode Casse-briques";
             this.gameSubtitle = "Premier à ";
         } else if (langue == 2) {
-            this.gameTitle = "Modo Rompe Ladrillos";
+            //this.gameTitle = "Modo Rompe Ladrillos";
             this.gameSubtitle = "Primero a ";
         } else if (langue == 3) {
-            this.gameTitle = "Режим Трошач на тухли";
+            //this.gameTitle = "Режим Трошач на тухли";
             this.gameSubtitle = "Първи до ";
         }
 
